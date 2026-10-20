@@ -155,3 +155,11 @@ describe("passwords and sessions work across both apps", async () => {
     expect(tokenHash("abc123")).toBe(py.token_hash);
   });
 });
+
+describe("rounding like Python", async () => {
+  const { round } = await import("@/lib/kitchen/logic");
+  it("rounds the exact binary value, ties to even", () => {
+    expect([round(0.125, 2), round(0.375, 2), round(13.005, 2), round(182.07 / 14, 2), round(2.5, 0), round(3.5, 0), round(-1.125, 2), round(1.005, 2)])
+      .toEqual([0.12, 0.38, 13.01, 13, 2, 4, -1.12, 1]); // the same as Python
+  });
+});

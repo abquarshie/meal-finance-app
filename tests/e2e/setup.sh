@@ -21,4 +21,5 @@ cur.execute("INSERT INTO users (username, display_name, password_hash, is_owner)
 conn.commit()
 PY
 python3 "$(dirname "$0")/../parity/seed.py" "$URL" "$CASHEW"
+python3 "$(dirname "$0")/../parity/seed_kitchen.py" "$URL" "$CASHEW"
 echo "$URL"

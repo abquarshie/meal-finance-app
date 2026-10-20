@@ -10,9 +10,9 @@ test("the desktop layout", async ({ page }) => {
   await page.getByText("Account balances").click();
   await page.screenshot({ path: "test-results/home-desktop.png", fullPage: true });
   for (const [path, name] of [["/transactions", "transactions"], ["/repeats", "repeats"], ["/budgets", "budgets"],
-    ["/settings/categories", "categories"]] as const) {
+    ["/settings/categories", "categories"], ["/meals", "meals"], ["/shopping", "shopping"], ["/pantry", "pantry"]] as const) {
     await page.goto(path);
     await page.screenshot({ path: `test-results/${name}-desktop.png`, fullPage: true });
   }
-  await expect(page.locator(".nav-link[aria-current=page]")).toHaveText("Settings");
+  await expect(page.locator(".nav-link[aria-current=page]")).toHaveText("Kitchen");
 });
