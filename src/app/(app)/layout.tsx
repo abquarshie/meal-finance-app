@@ -11,12 +11,11 @@ export const dynamic = "force-dynamic"; // always the family's latest figures
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
   const book = await loadBook(); // adds any auto transactions that are due first
-  const kitchen = process.env.CASHEW_STREAMLIT_URL;
   const items: NavItem[] = [
     { href: "/", label: "Home", icon: "home", match: ["/"] },
     { href: "/transactions", label: "Money", icon: "receipt", match: ["/transactions", "/repeats"] },
     { href: "/budgets", label: "Plan", icon: "donut", match: ["/budgets", "/goals"] },
-    ...(kitchen && book.feature("kitchen") ? [{ href: kitchen, label: "Kitchen", icon: "restaurant" as const, match: [], external: true }] : []),
+    ...(book.feature("kitchen") ? [{ href: "/meals", label: "Kitchen", icon: "restaurant" as const, match: ["/meals", "/shopping", "/pantry"] }] : []),
     { href: "/settings", label: "Settings", icon: "settings", match: ["/settings"] },
   ];
   return (

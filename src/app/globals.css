@@ -292,3 +292,42 @@ table.table { width: 100%; border-collapse: collapse; font-size: .88rem; }
 .auth-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; }
 .auth-sub { color: var(--muted); font-size: .92rem; margin-top: .15rem; }
 .caption + .msg { margin-top: .45rem; }
+
+/* ---- kitchen ---- */
+.btn.small { min-height: 2rem; padding: .25rem .65rem; font-size: .85rem; border-radius: 10px; }
+.seg a { display: grid; place-items: center; text-decoration: none; padding: .45rem .5rem; border-radius: 10px; font-weight: 700;
+  color: var(--muted); }
+.seg a[aria-pressed="true"] { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+.today-head { font-size: 1rem; font-weight: 750; letter-spacing: -.01em; margin-bottom: .35rem; }
+.today-row { padding: .45rem 0; border-top: 1px solid var(--line); font-size: .9rem; line-height: 1.35; }
+.today-slot { color: var(--muted); font-weight: 700; }
+.today-dish { font-weight: 650; min-width: 0; }
+.today-tag { color: var(--muted); font-size: .78rem; font-weight: 600; margin-top: .1rem; }
+.today-row.short .today-tag { color: var(--warn); }
+.today-row.ready .today-tag, .today-row.leftovers .today-tag { color: var(--in); }
+.today-row.done .today-dish { color: var(--muted); text-decoration: line-through; }
+.week-head { color: var(--muted); font-size: .8rem; font-weight: 700; margin: .2rem 0 -.4rem; }
+.card.day { padding-bottom: .8rem; }
+.meal { border-top: 1px solid var(--line); padding: .5rem 0 .35rem; }
+.meal:first-of-type { border-top: 0; }
+.meal-slot-row { display: flex; align-items: center; gap: .3rem; flex-wrap: wrap; }
+.meal-slot { color: var(--muted); font-size: .76rem; font-weight: 700; }
+.meal-row { display: flex; align-items: center; gap: .4rem; min-height: 2.4rem; }
+.meal-label { flex: 1; min-width: 0; font-weight: 650; font-size: .95rem; line-height: 1.35; }
+.meal-label.check { align-items: flex-start; }
+.meal-label.check input { margin-top: .15rem; flex: none; }
+.meal-parts { margin: 0 0 .1rem 1.75rem; }
+.meal-parts > summary { color: var(--muted); font-size: .78rem; cursor: pointer; line-height: 1.4; }
+.meal-part { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-size: .85rem; padding: .15rem 0; }
+.people-pop { flex-basis: 100%; display: grid; gap: .5rem; max-width: 280px; border: 1px solid var(--line); border-radius: 12px;
+  padding: .7rem; margin: .3rem 0; background: var(--card); }
+.note.pot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.mk-row { border-bottom: 1px solid var(--line); padding: .5rem 0; }
+.mk-row:last-child { border-bottom: 0; }
+.mk-row .check { font-size: 1rem; font-weight: 650; }
+.mk-why { color: var(--muted); font-size: .76rem; margin: .1rem 0 0 1.85rem; }
+.mk-row .row2 { margin: .5rem 0 0 1.85rem; }
+.stepper { display: flex; align-items: center; gap: .3rem; flex: none; }
+.cell-input { width: 6.5rem; min-height: 2.2rem; padding: .3rem .5rem; }
+.recipe-line { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: .4rem; align-items: center; }
+@media (max-width: 420px) { .recipe-line { grid-template-columns: minmax(0, 1fr) 4.5rem 5rem auto; } }

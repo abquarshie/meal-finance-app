@@ -1,0 +1,1599 @@
+{
+ "flag": "seeded_kitchen_gh1",
+ "sections": [
+  "Dairy, beverages & pantry",
+  "Grains & starches",
+  "Proteins & seafood",
+  "Oils, sauces & aromatics",
+  "Sankofa spices",
+  "Soup & stew basics"
+ ],
+ "catalog": [
+  [
+   "Dairy, beverages & pantry",
+   "Lele Gold evaporated milk (400g)",
+   "tbsp",
+   "Dairy/Cereal",
+   "tin",
+   16,
+   false,
+   null
+  ],
+  [
+   "Dairy, beverages & pantry",
+   "Lipton Yellow Label tea",
+   "teabag",
+   "Dairy/Cereal",
+   "pack",
+   25,
+   false,
+   null
+  ],
+  [
+   "Dairy, beverages & pantry",
+   "Josd brown cocoa powder (400g)",
+   "tbsp",
+   "Dairy/Cereal",
+   "jar",
+   80,
+   false,
+   null
+  ],
+  [
+   "Dairy, beverages & pantry",
+   "Cook Brand margarine (900g)",
+   "g",
+   "Dairy/Cereal",
+   "tub",
+   900,
+   false,
+   {
+    "tbsp": 15
+   }
+  ],
+  [
+   "Dairy, beverages & pantry",
+   "Pride of the West flour (2kg)",
+   "cup",
+   "Staples",
+   "bag",
+   16,
+   false,
+   {
+    "kg": 8
+   }
+  ],
+  [
+   "Grains & starches",
+   "A55 Gold jasmine rice (5kg)",
+   "cup",
+   "Staples",
+   "bag",
+   25,
+   false,
+   {
+    "kg": 5
+   }
+  ],
+  [
+   "Grains & starches",
+   "Black-eyed peas (beans)",
+   "cup",
+   "Staples",
+   "olonka",
+   6,
+   false,
+   null
+  ],
+  [
+   "Grains & starches",
+   "Yam",
+   "slice",
+   "Staples",
+   "tuber",
+   8,
+   false,
+   null
+  ],
+  [
+   "Grains & starches",
+   "Plantain",
+   "finger",
+   "Fruits/Veges",
+   "bundle",
+   5,
+   true,
+   null
+  ],
+  [
+   "Grains & starches",
+   "Gari",
+   "cup",
+   "Staples",
+   "olonka",
+   8,
+   false,
+   null
+  ],
+  [
+   "Grains & starches",
+   "Kokonte powder",
+   "cup",
+   "Staples",
+   "bag",
+   10,
+   false,
+   null
+  ],
+  [
+   "Grains & starches",
+   "Fermented corn dough",
+   "cup",
+   "Staples",
+   "kilo",
+   4,
+   false,
+   null
+  ],
+  [
+   "Grains & starches",
+   "Fermented cassava dough",
+   "cup",
+   "Staples",
+   "kilo",
+   4,
+   false,
+   null
+  ],
+  [
+   "Grains & starches",
+   "Cassava",
+   "kg",
+   "Staples",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Fresh tilapia",
+   "kg",
+   "Meat/Fish",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Hard chicken",
+   "kg",
+   "Meat/Fish",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Beef",
+   "kg",
+   "Meat/Fish",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Goat meat",
+   "kg",
+   "Meat/Fish",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Crabs",
+   "pcs",
+   "Meat/Fish",
+   "set",
+   6,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Snails",
+   "pcs",
+   "Meat/Fish",
+   "set",
+   6,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Adɔde (Volta clams)",
+   "cup",
+   "Meat/Fish",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Eggs",
+   "pcs",
+   "Dairy/Cereal",
+   "crate",
+   30,
+   false,
+   null
+  ],
+  [
+   "Proteins & seafood",
+   "Smoked mackerel",
+   "pcs",
+   "Meat/Fish",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Tasty Tom tomato mix",
+   "tbsp",
+   "Canned or Sachet items",
+   "pouch",
+   4,
+   false,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Vegetable oil",
+   "l",
+   "Oils",
+   "bottle",
+   1,
+   false,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Palm oil",
+   "l",
+   "Oils",
+   "bottle",
+   1,
+   false,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Tomato paste",
+   "tbsp",
+   "Canned or Sachet items",
+   "tin",
+   4,
+   false,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Tomatoes",
+   "pcs",
+   "Fruits/Veges",
+   "basket",
+   35,
+   true,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Onions",
+   "pcs",
+   "Fruits/Veges",
+   "bag",
+   40,
+   true,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Ginger",
+   "tbsp",
+   "Spices",
+   "thumb",
+   1.5,
+   false,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Garlic",
+   "clove",
+   "Spices",
+   "bulb",
+   6,
+   false,
+   null
+  ],
+  [
+   "Oils, sauces & aromatics",
+   "Pepper",
+   "pcs",
+   "Fruits/Veges",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Soup & stew basics",
+   "Garden eggs",
+   "pcs",
+   "Fruits/Veges",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Soup & stew basics",
+   "Kontomire",
+   "bunch",
+   "Fruits/Veges",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Soup & stew basics",
+   "Okro",
+   "pcs",
+   "Fruits/Veges",
+   null,
+   null,
+   false,
+   null
+  ],
+  [
+   "Soup & stew basics",
+   "Groundnut paste",
+   "g",
+   "Canned or Sachet items",
+   "jar",
+   500,
+   false,
+   null
+  ],
+  [
+   "Soup & stew basics",
+   "Palm nut cream",
+   "g",
+   "Canned or Sachet items",
+   "tin",
+   800,
+   false,
+   null
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Stew & Gravy",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Soup Seasoning",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Jollof Rice",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Chicken",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Beef",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Fish",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Noodles & Pasta",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Ginger & Garlic",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Hot Pepper Blend",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ],
+  [
+   "Sankofa spices",
+   "Sankofa Curry Powder",
+   "tsp",
+   "Spices",
+   "sachet",
+   5,
+   false,
+   {
+    "container": 80
+   }
+  ]
+ ],
+ "templates": [
+  [
+   "Light soup",
+   "soup",
+   14,
+   7,
+   "Season the goat meat",
+   3,
+   "Season and steam the goat meat with onion, ginger and garlic. Boil tomatoes, pepper, onion and garden eggs, blend, sieve into the meat and simmer 30 minutes.",
+   [
+    [
+     "Goat meat",
+     1.5,
+     "kg"
+    ],
+    [
+     "Tomatoes",
+     10,
+     "pcs"
+    ],
+    [
+     "Onions",
+     3,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     6,
+     "pcs"
+    ],
+    [
+     "Garden eggs",
+     6,
+     "pcs"
+    ],
+    [
+     "Ginger",
+     2,
+     "tbsp"
+    ],
+    [
+     "Garlic",
+     6,
+     "clove"
+    ],
+    [
+     "Sankofa Soup Seasoning",
+     3,
+     "tsp"
+    ]
+   ]
+  ],
+  [
+   "Groundnut soup",
+   "soup",
+   14,
+   7,
+   "Season the chicken",
+   3,
+   "Steam the seasoned chicken. Loosen the groundnut paste with water and cook until the oil rises. Add blended tomatoes, onion and pepper, then the chicken, and simmer until thick.",
+   [
+    [
+     "Hard chicken",
+     1.5,
+     "kg"
+    ],
+    [
+     "Groundnut paste",
+     500,
+     "g"
+    ],
+    [
+     "Tomatoes",
+     6,
+     "pcs"
+    ],
+    [
+     "Tomato paste",
+     4,
+     "tbsp"
+    ],
+    [
+     "Onions",
+     3,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     5,
+     "pcs"
+    ],
+    [
+     "Ginger",
+     2,
+     "tbsp"
+    ],
+    [
+     "Garlic",
+     4,
+     "clove"
+    ],
+    [
+     "Sankofa Chicken",
+     3,
+     "tsp"
+    ]
+   ]
+  ],
+  [
+   "Palm nut soup",
+   "soup",
+   14,
+   7,
+   null,
+   null,
+   "Steam the beef with onion. Stir the palm nut cream into water and boil. Add blended tomatoes, pepper and garden eggs, then the beef, crabs and fish, and simmer until the oil rises.",
+   [
+    [
+     "Palm nut cream",
+     800,
+     "g"
+    ],
+    [
+     "Beef",
+     1,
+     "kg"
+    ],
+    [
+     "Smoked mackerel",
+     2,
+     "pcs"
+    ],
+    [
+     "Crabs",
+     6,
+     "pcs"
+    ],
+    [
+     "Tomatoes",
+     5,
+     "pcs"
+    ],
+    [
+     "Onions",
+     3,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     5,
+     "pcs"
+    ],
+    [
+     "Garden eggs",
+     6,
+     "pcs"
+    ],
+    [
+     "Sankofa Soup Seasoning",
+     3,
+     "tsp"
+    ]
+   ]
+  ],
+  [
+   "Okra soup",
+   "soup",
+   14,
+   7,
+   null,
+   null,
+   "Steam the beef. Fry onion, tomatoes and pepper in palm oil, add the meat stock, crabs and fish, then the chopped okro, and cook 10 minutes.",
+   [
+    [
+     "Okro",
+     30,
+     "pcs"
+    ],
+    [
+     "Beef",
+     1,
+     "kg"
+    ],
+    [
+     "Smoked mackerel",
+     2,
+     "pcs"
+    ],
+    [
+     "Crabs",
+     6,
+     "pcs"
+    ],
+    [
+     "Palm oil",
+     150,
+     "ml"
+    ],
+    [
+     "Tomatoes",
+     5,
+     "pcs"
+    ],
+    [
+     "Onions",
+     2,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     5,
+     "pcs"
+    ],
+    [
+     "Sankofa Fish",
+     2,
+     "tsp"
+    ]
+   ]
+  ],
+  [
+   "Tomato stew",
+   "stew",
+   14,
+   7,
+   "Season the beef",
+   3,
+   "Season and brown the beef. Fry sliced onions in the oil, add the paste, then blended tomatoes, pepper, ginger and garlic. Cook down until the oil rises, then add the beef.",
+   [
+    [
+     "Beef",
+     1,
+     "kg"
+    ],
+    [
+     "Tomatoes",
+     15,
+     "pcs"
+    ],
+    [
+     "Tomato paste",
+     8,
+     "tbsp"
+    ],
+    [
+     "Onions",
+     4,
+     "pcs"
+    ],
+    [
+     "Vegetable oil",
+     400,
+     "ml"
+    ],
+    [
+     "Pepper",
+     4,
+     "pcs"
+    ],
+    [
+     "Ginger",
+     2,
+     "tbsp"
+    ],
+    [
+     "Garlic",
+     6,
+     "clove"
+    ],
+    [
+     "Sankofa Stew & Gravy",
+     4,
+     "tsp"
+    ]
+   ]
+  ],
+  [
+   "Kontomire stew",
+   "stew",
+   14,
+   7,
+   null,
+   null,
+   "Boil and chop the kontomire. Fry onions and tomatoes in palm oil, add pepper, the flaked fish and kontomire, then stir in beaten eggs.",
+   [
+    [
+     "Kontomire",
+     4,
+     "bunch"
+    ],
+    [
+     "Palm oil",
+     250,
+     "ml"
+    ],
+    [
+     "Onions",
+     3,
+     "pcs"
+    ],
+    [
+     "Tomatoes",
+     6,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     4,
+     "pcs"
+    ],
+    [
+     "Smoked mackerel",
+     3,
+     "pcs"
+    ],
+    [
+     "Eggs",
+     6,
+     "pcs"
+    ],
+    [
+     "Sankofa Fish",
+     2,
+     "tsp"
+    ]
+   ]
+  ],
+  [
+   "Kokonte",
+   "starch",
+   2,
+   1,
+   null,
+   null,
+   "Stir the powder into boiling water a little at a time, then turn firmly until smooth.",
+   [
+    [
+     "Kokonte powder",
+     1.5,
+     "cup"
+    ]
+   ]
+  ],
+  [
+   "Fufu",
+   "starch",
+   2,
+   1,
+   null,
+   null,
+   "Boil peeled cassava and green plantain until soft, then pound together until smooth and stretchy.",
+   [
+    [
+     "Cassava",
+     1,
+     "kg"
+    ],
+    [
+     "Plantain",
+     2,
+     "finger"
+    ]
+   ]
+  ],
+  [
+   "Banku",
+   "starch",
+   2,
+   1,
+   null,
+   null,
+   "Mix both doughs with water and a pinch of salt, then cook, turning all the time, until firm and smooth.",
+   [
+    [
+     "Fermented corn dough",
+     1.5,
+     "cup"
+    ],
+    [
+     "Fermented cassava dough",
+     0.5,
+     "cup"
+    ]
+   ]
+  ],
+  [
+   "Plain rice",
+   "starch",
+   2,
+   2,
+   null,
+   null,
+   "Wash the rice and steam it with salted water until done.",
+   [
+    [
+     "A55 Gold jasmine rice (5kg)",
+     1.5,
+     "cup"
+    ]
+   ]
+  ],
+  [
+   "Waakye",
+   "starch",
+   2,
+   2,
+   "Soak the beans",
+   10,
+   "Boil the soaked beans with waakye leaves until half soft, add the washed rice and cook until done.",
+   [
+    [
+     "A55 Gold jasmine rice (5kg)",
+     1,
+     "cup"
+    ],
+    [
+     "Black-eyed peas (beans)",
+     0.5,
+     "cup"
+    ]
+   ]
+  ],
+  [
+   "Boiled yam",
+   "starch",
+   2,
+   1,
+   null,
+   null,
+   "Peel the slices and boil in salted water until soft.",
+   [
+    [
+     "Yam",
+     4,
+     "slice"
+    ]
+   ]
+  ],
+  [
+   "Boiled plantain",
+   "starch",
+   2,
+   1,
+   null,
+   null,
+   "Peel and boil the plantain until soft.",
+   [
+    [
+     "Plantain",
+     3,
+     "finger"
+    ]
+   ]
+  ]
+ ],
+ "pairings": [
+  [
+   "Kokonte + Palm nut soup",
+   [
+    "Kokonte",
+    "Palm nut soup"
+   ],
+   null
+  ],
+  [
+   "Kokonte + Groundnut soup",
+   [
+    "Kokonte",
+    "Groundnut soup"
+   ],
+   null
+  ],
+  [
+   "Fufu + Light soup",
+   [
+    "Fufu",
+    "Light soup"
+   ],
+   null
+  ],
+  [
+   "Fufu + Palm nut soup",
+   [
+    "Fufu",
+    "Palm nut soup"
+   ],
+   null
+  ],
+  [
+   "Fufu + Groundnut soup",
+   [
+    "Fufu",
+    "Groundnut soup"
+   ],
+   null
+  ],
+  [
+   "Banku + Okra soup",
+   [
+    "Banku",
+    "Okra soup"
+   ],
+   null
+  ],
+  [
+   "Banku + Light soup",
+   [
+    "Banku",
+    "Light soup"
+   ],
+   null
+  ],
+  [
+   "Waakye + Stew + Gari",
+   [
+    "Waakye",
+    "Tomato stew"
+   ],
+   [
+    "Gari",
+    0.5,
+    "cup"
+   ]
+  ],
+  [
+   "Plain rice + Tomato stew",
+   [
+    "Plain rice",
+    "Tomato stew"
+   ],
+   null
+  ],
+  [
+   "Boiled yam + Kontomire stew",
+   [
+    "Boiled yam",
+    "Kontomire stew"
+   ],
+   null
+  ],
+  [
+   "Boiled plantain + Kontomire stew",
+   [
+    "Boiled plantain",
+    "Kontomire stew"
+   ],
+   null
+  ]
+ ],
+ "equiv": {
+  "ginger": {
+   "g": 10
+  },
+  "garlic": {
+   "pcs": 1
+  },
+  "tomato paste": {
+   "sachet": 0.25
+  },
+  "gari": {
+   "g": 150
+  },
+  "plantain": {
+   "pcs": 1
+  }
+ },
+ "starterIngredients": [
+  [
+   "Rice",
+   "kg",
+   "Staples",
+   1,
+   "bag",
+   5
+  ],
+  [
+   "Black-eyed beans",
+   "kg",
+   "Staples",
+   0.5,
+   "bag",
+   1
+  ],
+  [
+   "Gari",
+   "cup",
+   "Staples",
+   2,
+   "olonka",
+   8
+  ],
+  [
+   "Fermented corn dough",
+   "cup",
+   "Staples",
+   null,
+   "kilo",
+   4
+  ],
+  [
+   "Onions",
+   "pcs",
+   "Fruits/Veges",
+   3,
+   "bag",
+   40,
+   true
+  ],
+  [
+   "Tomatoes",
+   "pcs",
+   "Fruits/Veges",
+   null,
+   "basket",
+   35,
+   true
+  ],
+  [
+   "Pepper",
+   "pcs",
+   "Fruits/Veges",
+   null,
+   null,
+   null
+  ],
+  [
+   "Ripe plantain",
+   "finger",
+   "Fruits/Veges",
+   null,
+   "bundle",
+   5,
+   true
+  ],
+  [
+   "Green plantain",
+   "finger",
+   "Fruits/Veges",
+   null,
+   "bundle",
+   5,
+   true
+  ],
+  [
+   "Kontomire",
+   "bunch",
+   "Fruits/Veges",
+   null,
+   null,
+   null
+  ],
+  [
+   "Okro",
+   "pcs",
+   "Fruits/Veges",
+   null,
+   null,
+   null
+  ],
+  [
+   "Ginger",
+   "tbsp",
+   "Spices",
+   3,
+   "thumb",
+   1.5
+  ],
+  [
+   "Garlic",
+   "clove",
+   "Spices",
+   3,
+   "bulb",
+   6
+  ],
+  [
+   "Stock cubes",
+   "pcs",
+   "Spices",
+   4,
+   "pack",
+   10
+  ],
+  [
+   "Tomato paste",
+   "tbsp",
+   "Canned or Sachet items",
+   4,
+   "tin",
+   4
+  ],
+  [
+   "Vegetable oil",
+   "l",
+   "Oils",
+   0.5,
+   "bottle",
+   1.5
+  ],
+  [
+   "Palm oil",
+   "l",
+   "Oils",
+   0.25,
+   "bottle",
+   1
+  ],
+  [
+   "Chicken",
+   "kg",
+   "Meat/Fish",
+   null,
+   null,
+   null
+  ],
+  [
+   "Smoked mackerel",
+   "pcs",
+   "Meat/Fish",
+   null,
+   null,
+   null
+  ],
+  [
+   "Eggs",
+   "pcs",
+   "Dairy/Cereal",
+   4,
+   "crate",
+   30
+  ],
+  [
+   "Milk",
+   "tin",
+   "Dairy/Cereal",
+   1,
+   null,
+   null
+  ],
+  [
+   "Bread",
+   "loaf",
+   "Bakery",
+   null,
+   null,
+   null
+  ]
+ ],
+ "starterRecipes": [
+  [
+   "Jollof rice with chicken",
+   4,
+   3,
+   "Season the chicken",
+   3,
+   "Season and brown the chicken. Fry onions, blended tomatoes, pepper and paste; add stock, then rice. Cover and steam until done.",
+   [
+    [
+     "Rice",
+     750,
+     "g"
+    ],
+    [
+     "Chicken",
+     1,
+     "kg"
+    ],
+    [
+     "Tomatoes",
+     5,
+     "pcs"
+    ],
+    [
+     "Tomato paste",
+     4,
+     "tbsp"
+    ],
+    [
+     "Onions",
+     3,
+     "pcs"
+    ],
+    [
+     "Vegetable oil",
+     150,
+     "ml"
+    ],
+    [
+     "Pepper",
+     3,
+     "pcs"
+    ],
+    [
+     "Ginger",
+     3,
+     "tbsp"
+    ],
+    [
+     "Garlic",
+     3,
+     "clove"
+    ],
+    [
+     "Stock cubes",
+     2,
+     "pcs"
+    ]
+   ]
+  ],
+  [
+   "Red red",
+   4,
+   2,
+   "Soak the beans",
+   10,
+   "Boil the soaked beans until soft. Fry onions, tomatoes and pepper in palm oil, add fish and beans. Serve with fried ripe plantain and gari.",
+   [
+    [
+     "Black-eyed beans",
+     500,
+     "g"
+    ],
+    [
+     "Palm oil",
+     150,
+     "ml"
+    ],
+    [
+     "Onions",
+     2,
+     "pcs"
+    ],
+    [
+     "Tomatoes",
+     3,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     2,
+     "pcs"
+    ],
+    [
+     "Smoked mackerel",
+     1,
+     "pcs"
+    ],
+    [
+     "Ripe plantain",
+     4,
+     "finger"
+    ],
+    [
+     "Gari",
+     1.5,
+     "cup"
+    ]
+   ]
+  ],
+  [
+   "Kontomire stew with plantain",
+   4,
+   2,
+   null,
+   null,
+   "Boil the green plantain. Fry onions and tomatoes in palm oil, add chopped kontomire, fish and beaten eggs.",
+   [
+    [
+     "Kontomire",
+     2,
+     "bunch"
+    ],
+    [
+     "Palm oil",
+     100,
+     "ml"
+    ],
+    [
+     "Onions",
+     2,
+     "pcs"
+    ],
+    [
+     "Tomatoes",
+     4,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     2,
+     "pcs"
+    ],
+    [
+     "Smoked mackerel",
+     2,
+     "pcs"
+    ],
+    [
+     "Eggs",
+     4,
+     "pcs"
+    ],
+    [
+     "Green plantain",
+     4,
+     "finger"
+    ]
+   ]
+  ],
+  [
+   "Okro stew with banku",
+   4,
+   2,
+   null,
+   null,
+   "Cook the banku from corn dough. Fry onions, tomatoes and pepper in palm oil, add fish and chopped okro.",
+   [
+    [
+     "Okro",
+     20,
+     "pcs"
+    ],
+    [
+     "Fermented corn dough",
+     4,
+     "cup"
+    ],
+    [
+     "Palm oil",
+     100,
+     "ml"
+    ],
+    [
+     "Smoked mackerel",
+     2,
+     "pcs"
+    ],
+    [
+     "Onions",
+     1,
+     "pcs"
+    ],
+    [
+     "Tomatoes",
+     3,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     3,
+     "pcs"
+    ]
+   ]
+  ],
+  [
+   "Light soup with chicken",
+   4,
+   3,
+   null,
+   null,
+   "Steam the seasoned chicken. Boil tomatoes, onions and pepper, blend, and simmer with the chicken.",
+   [
+    [
+     "Chicken",
+     1,
+     "kg"
+    ],
+    [
+     "Tomatoes",
+     6,
+     "pcs"
+    ],
+    [
+     "Onions",
+     2,
+     "pcs"
+    ],
+    [
+     "Pepper",
+     3,
+     "pcs"
+    ],
+    [
+     "Ginger",
+     2,
+     "tbsp"
+    ],
+    [
+     "Garlic",
+     2,
+     "clove"
+    ],
+    [
+     "Stock cubes",
+     1,
+     "pcs"
+    ]
+   ]
+  ],
+  [
+   "Bread, eggs and tea",
+   4,
+   1,
+   null,
+   null,
+   "Fry or boil the eggs; serve with bread and tea with milk.",
+   [
+    [
+     "Bread",
+     1,
+     "loaf"
+    ],
+    [
+     "Eggs",
+     4,
+     "pcs"
+    ],
+    [
+     "Milk",
+     1,
+     "tin"
+    ]
+   ]
+  ]
+ ],
+ "supplies": [
+  [
+   "Washing powder",
+   "kg",
+   0.5,
+   "pack",
+   1
+  ],
+  [
+   "Dishwashing liquid",
+   "ml",
+   200,
+   "bottle",
+   500
+  ],
+  [
+   "Bleach",
+   "ml",
+   250,
+   "bottle",
+   1000
+  ],
+  [
+   "Disinfectant",
+   "ml",
+   100,
+   "bottle",
+   500
+  ],
+  [
+   "Toilet roll",
+   "pcs",
+   4,
+   "pack",
+   10
+  ],
+  [
+   "Bathing soap",
+   "pcs",
+   2,
+   "pack",
+   3
+  ],
+  [
+   "Bar soap for washing",
+   "pcs",
+   1,
+   null,
+   null
+  ],
+  [
+   "Sponges",
+   "pcs",
+   1,
+   "pack",
+   3
+  ],
+  [
+   "Bin bags",
+   "pcs",
+   5,
+   "pack",
+   20
+  ]
+ ]
+}

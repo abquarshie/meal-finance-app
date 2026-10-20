@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AddEntryButton } from "@/components/AddEntry";
 import { BudgetList } from "@/components/Budgets";
 import { activity, Feed } from "@/components/Feed";
+import { TodayCard } from "@/components/kitchen/TodayCard";
+import { loadKitchen } from "@/lib/kitchen/load";
 import { MonthSelect } from "@/components/MonthSelect";
 import { Spending } from "@/components/Spending";
 import { Empty, Msg, PageHead, Pill } from "@/components/ui";
@@ -16,6 +18,7 @@ export const metadata = { title: "Home" };
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
   const [user, b, sp] = await Promise.all([requireUser(), loadBook(), searchParams]);
+  const k = b.feature("kitchen") ? await loadKitchen().catch(() => null) : null;
   const now = today();
   const months = b.months(now);
   const period = sp.month && months.includes(sp.month) ? sp.month : monthOf(now);
@@ -83,6 +86,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
         </div>
 
         <div className="stack">
+          {k ? <TodayCard k={k} /> : null}
           <MonthSelect months={months} value={period} />
           <div className="kpi-grid">
             <div className="kpi"><div className="kpi-label">Income</div><div className="kpi-value">{money(inc)}</div>
