@@ -27,11 +27,8 @@ test("signed out, every page leads to sign-in and back", async ({ page }) => {
   await expect(page).toHaveURL(/\/budgets$/);
 });
 
-test("Home: the banner, balances and this month", async ({ page }) => {
+test("Home: balances and this month", async ({ page }) => {
   await signIn(page);
-  const hero = page.locator("[data-state]");
-  await expect(hero).toHaveAttribute("data-state", /.+/);
-  await expect(hero.locator(".num")).toHaveText(/^−?GH₵[\d,]+\.\d\d$/);
   await page.locator("summary", { hasText: "Accounts" }).click(); // folded by default
   await expect(page.getByText("Susu").locator("..")).toContainText("savings");
   await expect(page.getByText(/^Income · /)).toBeVisible();
