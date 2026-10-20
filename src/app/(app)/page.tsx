@@ -4,10 +4,10 @@ import { BudgetList } from "@/components/Budgets";
 import { activity, Feed } from "@/components/Feed";
 import { TodayMeals } from "@/components/kitchen/TodayMeals";
 import { MonthSelect } from "@/components/MonthSelect";
-import { Empty, Kpi, Msg, Pill } from "@/components/ui";
+import { Empty, Kpi, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { previousMonth } from "@/lib/book";
-import { dayMonth, daysBetween, monthDays, monthName, monthOf, monthShort, today } from "@/lib/dates";
+import { monthDays, monthName, monthOf, monthShort, today } from "@/lib/dates";
 import { loadBook, windowStart } from "@/lib/load";
 import { money } from "@/lib/money";
 import { changeText } from "@/lib/words";
@@ -21,7 +21,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const period = sp.month && months.includes(sp.month) ? sp.month : monthOf(now);
   // an older month than the usual window is read on its own (with the month before, for the comparison)
   const b = `${period}-01` < windowStart(now) ? await loadBook(period) : base;
-  const p = b.spendingPower(now);
 
   // income and expenses, compared with last month (part-way through a month: the same days of last month)
   const [inc, exp] = b.monthTotals(period);
@@ -35,11 +34,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const total = b.budgetTotal(period);
   const net = inc - exp;
 
-  const balances = [...b.balances()];
-  const everyday = new Set(b.everydayAccounts);
   const status = b.budgetStatus(period);
   const over = status.filter((s) => s.spent > s.limit).length;
-  const next = b.nextAuto();
   const items = activity(b, 6);
 
   return (
@@ -68,23 +64,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
           {b.feature("kitchen") ? <TodayMeals /> : null}
 
-          <details className="card">
-            <summary>Accounts<span className="section-aside ml-auto">{money(p.everyday)} everyday</span></summary>
-            {next ? <p className="caption mt-0 mb-2">Next auto entry: {next.name}, {money(next.amount)}, {
-              daysBetween(now, next.nextDate) <= 0 ? "today" : daysBetween(now, next.nextDate) === 1 ? "tomorrow" : dayMonth(next.nextDate)}.</p> : null}
-            <div className="grid gap-x-6 sm:grid-cols-2">
-              {balances.map(([n, v]) => (
-                <div className="flex justify-between gap-3 border-b border-line py-2 text-sm" key={n}>
-                  <span className="truncate text-muted">{n}{everyday.has(n) ? null : <i className="tag">savings</i>}</span>
-                  <b className={`num font-semibold${v < 0 ? " text-out" : ""}`}>{money(v)}</b>
-                </div>
-              ))}
-            </div>
-            {b.unassigned ? (
-              <Msg tone="warn">{b.unassigned} older entr{b.unassigned === 1 ? "y has" : "ies have"} no account, so balances
-                may be off. Fix this in Settings → Accounts.</Msg>
-            ) : null}
-          </details>
         </div>
 
         <div className="stack">
