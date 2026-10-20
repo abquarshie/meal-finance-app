@@ -38,6 +38,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const balances = [...b.balances()];
   const everyday = new Set(b.everydayAccounts);
   const status = b.budgetStatus(period);
+  const over = status.filter((s) => s.spent > s.limit).length;
   const next = b.nextAuto();
   const items = activity(b, 6);
 
@@ -71,11 +72,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
             <div className="note">Add an account first in <Link href="/settings">Settings → Accounts</Link>.</div>
           )}
 
-          <div className="card">
-            <div className="section"><h2 className="section-title">Accounts</h2>
-              <span className="section-aside">{next ? `Next auto: ${next.name}, ${money(next.amount)}, ${
-                daysBetween(now, next.nextDate) <= 0 ? "today" : daysBetween(now, next.nextDate) === 1 ? "tomorrow" : dayMonth(next.nextDate)}` : ""}</span>
-            </div>
+          <details className="card">
+            <summary>Accounts<span className="section-aside ml-auto">{money(p.everyday)} everyday</span></summary>
+            {next ? <p className="caption mt-0 mb-2">Next auto entry: {next.name}, {money(next.amount)}, {
+              daysBetween(now, next.nextDate) <= 0 ? "today" : daysBetween(now, next.nextDate) === 1 ? "tomorrow" : dayMonth(next.nextDate)}.</p> : null}
             <div className="grid gap-x-6 sm:grid-cols-2">
               {balances.map(([n, v]) => (
                 <div className="flex justify-between gap-3 border-b border-line py-2 text-sm" key={n}>
@@ -88,23 +88,25 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
               <Msg tone="warn">{b.unassigned} older entr{b.unassigned === 1 ? "y has" : "ies have"} no account, so balances
                 may be off. Fix this in Settings → Accounts.</Msg>
             ) : null}
-          </div>
+          </details>
         </div>
 
         <div className="stack">
-          <div className="card">
-            <div className="section"><h2 className="section-title">Budgets</h2><span className="section-aside">{monthName(period, false)}</span></div>
+          <details className="card">
+            <summary>Budgets<span className="section-aside ml-auto">{monthName(period, false)}{over ? ` · ${over} over` : ""}</span></summary>
             {status.length ? <BudgetList status={status} /> : (
               <Empty>No monthly budgets yet. <Link href="/budgets">Set a budget</Link></Empty>
             )}
-          </div>
-          <div className="card">
-            <div className="section"><h2 className="section-title">Recent activity</h2>
-              <Link className="text-sm font-semibold no-underline" href="/transactions">See all</Link></div>
+          </details>
+          <details className="card">
+            <summary>Recent activity</summary>
             {items.length ? (
-              <Feed items={items} showWho={b.multiMember} names={b.users.length > 1 ? b.nameOfUser : undefined} />
+              <>
+                <Feed items={items} showWho={b.multiMember} names={b.users.length > 1 ? b.nameOfUser : undefined} />
+                <Link className="btn ghost mt-1" href="/transactions">See all transactions</Link>
+              </>
             ) : <Empty>Nothing recorded yet. Tap Add an entry to record your first one.</Empty>}
-          </div>
+          </details>
         </div>
       </div>
     </>

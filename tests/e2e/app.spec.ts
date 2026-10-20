@@ -32,6 +32,7 @@ test("Home: the banner, balances and this month", async ({ page }) => {
   const hero = page.locator("[data-state]");
   await expect(hero).toHaveAttribute("data-state", /.+/);
   await expect(hero.locator(".num")).toHaveText(/^−?GH₵[\d,]+\.\d\d$/);
+  await page.locator("summary", { hasText: "Accounts" }).click(); // folded by default
   await expect(page.getByText("Susu").locator("..")).toContainText("savings");
   await expect(page.getByText(/^Income · /)).toBeVisible();
   await page.screenshot({ path: "test-results/home-phone.png", fullPage: true });

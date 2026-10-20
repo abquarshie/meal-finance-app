@@ -72,6 +72,7 @@
   details.card > summary::-webkit-details-marker { display: none; }
   details.card > summary::after { content: "›"; @apply ml-auto text-xl leading-none text-muted transition-transform; }
   details.card[open] > summary::after { transform: rotate(90deg); }
+  details.card > summary:has(.section-aside)::after { @apply ml-2; } /* the aside takes the free space instead */
   details.card[open] > summary { @apply mb-3; }
 
   .tabs { @apply -mt-1 mb-5 flex gap-1 overflow-x-auto border-b border-line; scrollbar-width: none; }
