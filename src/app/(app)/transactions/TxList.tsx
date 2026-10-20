@@ -16,8 +16,8 @@ export type Row = {
 const item = (r: Row): FeedItem => ({ key: String(r.id), date: r.date, kind: r.type, title: r.category, amount: r.amount,
   account: r.account, to: r.toAccount, who: r.member, note: r.shown, auto: r.isAuto, fee: r.isFee, by: r.by });
 
-export function TxList({ rows, categories, accounts, members, kindOf, showWho, names }: {
-  rows: Row[]; categories: string[]; accounts: string[]; members: string[]; kindOf: Record<string, Kind>;
+export function TxList({ rows, total, categories, accounts, members, kindOf, showWho, names }: {
+  rows: Row[]; total: number; categories: string[]; accounts: string[]; members: string[]; kindOf: Record<string, Kind>;
   showWho: boolean; names: Record<string, string> | null;
 }) {
   const toast = useToast();
@@ -27,7 +27,7 @@ export function TxList({ rows, categories, accounts, members, kindOf, showWho, n
   const [asking, setAsking] = useState<number[] | null>(null);
   const [busy, start] = useTransition();
   const nameMap = names ? new Map(Object.entries(names)) : undefined;
-  const shown = rows.slice(0, 400);
+  const shown = rows;
 
   function remove(ids: number[]) {
     start(async () => {
@@ -84,7 +84,7 @@ export function TxList({ rows, categories, accounts, members, kindOf, showWho, n
           );
         })}
       </div>
-      {rows.length > shown.length ? <p className="caption">Showing the newest {shown.length}. Pick a month to see the rest.</p> : null}
+      {total > shown.length ? <p className="caption">Showing the newest {shown.length}. Pick a month to see the rest.</p> : null}
 
       <Sheet open={editing !== null} onClose={() => setEditing(null)} title="Change an entry">
         {editing ? (

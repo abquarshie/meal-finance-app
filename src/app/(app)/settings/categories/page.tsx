@@ -1,14 +1,14 @@
 import { SettingsHead } from "@/components/SettingsTabs";
 import { Section } from "@/components/ui";
+import { prisma } from "@/lib/db";
 import { loadBook } from "@/lib/load";
 import { CategoryForms } from "./CategoryForms";
 
 export const metadata = { title: "Categories" };
 
 export default async function Categories() {
-  const b = await loadBook();
-  const used: Record<string, number> = {};
-  for (const t of b.tx) used[t.category] = (used[t.category] ?? 0) + 1;
+  const [b, counts] = await Promise.all([loadBook(), prisma.transaction.groupBy({ by: ["category"], _count: true })]);
+  const used: Record<string, number> = Object.fromEntries(counts.map((c) => [c.category, c._count]));
   return (
     <>
       <SettingsHead current="/settings/categories" sub="Shape the app around how your family handles money" />

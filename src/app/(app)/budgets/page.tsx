@@ -1,7 +1,8 @@
 import { BudgetList } from "@/components/Budgets";
-import { Empty, PageHead, Section, Tabs } from "@/components/ui";
+import { Empty, Kpi, PageHead, Section } from "@/components/ui";
 import { monthName, monthOf, today } from "@/lib/dates";
 import { loadBook } from "@/lib/load";
+import { money } from "@/lib/money";
 import { BudgetForms } from "./BudgetForms";
 
 export const metadata = { title: "Budgets" };
@@ -10,6 +11,7 @@ export default async function Budgets() {
   const b = await loadBook();
   const period = monthOf(today());
   const status = b.budgetStatus(period);
+  const total = b.budgetTotal(period);
   // every expense group, then its categories, as budget choices
   const targets: { key: string; label: string; isGroup: boolean; group: string }[] = [];
   for (const g of b.groups) {
@@ -25,10 +27,14 @@ export default async function Budgets() {
   }
   return (
     <>
-      <PageHead title="Plan" />
-      <Tabs current="/budgets" tabs={[{ href: "/budgets", label: "Budgets" },
-        ...(b.feature("goals") ? [{ href: "/goals", label: "Goals" }] : [])]} />
-      <p className="page-sub" style={{ margin: "-.4rem 0 1rem" }}>A monthly limit for a whole group, like Food, or for one category</p>
+      <PageHead title="Budgets" sub="A monthly limit for a whole group, like Food, or for one category" />
+      {total ? (
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <Kpi label="Budgeted" value={money(total.limit)} />
+          <Kpi label="Spent" value={money(total.spent)} foot={`${Math.round(total.limit ? (total.spent / total.limit) * 100 : 0)}% used`} />
+          <Kpi label="Left" value={money(total.left)} tone={total.left < 0 ? "out" : "in"} className="col-span-2 sm:col-span-1" />
+        </div>
+      ) : null}
       <div className="grid32">
         <div className="card">
           <Section title="This month" aside={monthName(period)} />

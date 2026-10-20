@@ -89,13 +89,3 @@ export async function copyLastWeek() {
   const n = k.mealCount(fresh);
   return r.ok ? { ok: true as const, message: `Copied ${n} meal${n === 1 ? "" : "s"}. Change anything that's different.` } : r;
 }
-
-export async function addIdea(day: string, slot: string, recipeId: number) {
-  await requireUser();
-  const k = await loadKitchen();
-  const r = k.recipes.get(recipeId);
-  if (!r || !isISODate(day)) return { ok: false as const, error: "That dish is no longer in the recipe book." };
-  const res = await addToPlan([{ day, slot: slot as (typeof SLOTS)[number], recipeId, qty: r.portions }]);
-  const when = day === today() ? "today" : day === addDays(today(), 1) ? "tomorrow" : day;
-  return res.ok ? { ok: true as const, message: `Added ${r.name} to ${when}, ${slot.toLowerCase()}` } : res;
-}

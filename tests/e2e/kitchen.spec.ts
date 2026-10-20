@@ -1,5 +1,5 @@
 // The kitchen on a phone: ticking meals, paying for bought food, smaller pots, adding to the plan, a shopping trip,
-// the fridge, recipes, household supplies and people per meal. Data from tests/parity/seed_kitchen.py.
+// the fridge, recipes and people per meal. Data from tests/parity/seed_kitchen.py.
 import { expect, test, type Page } from "@playwright/test";
 
 test.describe.configure({ mode: "serial" });
@@ -117,16 +117,6 @@ test("a new recipe goes into the book", async ({ page }) => {
   await ed.getByRole("button", { name: "Save recipe" }).click();
   await toast(page, "Saved Test egg stew");
   await expect(page.locator(".rule", { hasText: "Test egg stew" })).toContainText("6 Eggs");
-});
-
-test("household supplies count in packs", async ({ page }) => {
-  await signIn(page);
-  await page.goto("/meals/household");
-  const roll = page.locator(".rule", { hasText: "Toilet roll" });
-  await expect(roll).toContainText("3");
-  await roll.getByRole("button", { name: "One more pack" }).click();
-  await toast(page, "One more");
-  await expect(roll).toContainText("1 pack + 3");
 });
 
 test("the usual number at lunch", async ({ page }) => {

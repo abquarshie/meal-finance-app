@@ -2,26 +2,25 @@ import Link from "next/link";
 import { AddEntryButton } from "@/components/AddEntry";
 import { BudgetList } from "@/components/Budgets";
 import { activity, Feed } from "@/components/Feed";
-import { TodayCard } from "@/components/kitchen/TodayCard";
-import { loadKitchen } from "@/lib/kitchen/load";
+import { TodayMeals } from "@/components/kitchen/TodayMeals";
 import { MonthSelect } from "@/components/MonthSelect";
-import { Spending } from "@/components/Spending";
-import { Empty, Msg, PageHead, Pill } from "@/components/ui";
+import { Empty, Kpi, Msg, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { previousMonth } from "@/lib/book";
 import { dayMonth, daysBetween, monthDays, monthName, monthOf, monthShort, today } from "@/lib/dates";
-import { loadBook } from "@/lib/load";
+import { loadBook, windowStart } from "@/lib/load";
 import { money } from "@/lib/money";
 import { bannerIsRed, bannerLabel, changeText, committedText } from "@/lib/words";
 
 export const metadata = { title: "Home" };
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const [user, b, sp] = await Promise.all([requireUser(), loadBook(), searchParams]);
-  const k = b.feature("kitchen") ? await loadKitchen().catch(() => null) : null;
+  const [user, base, sp] = await Promise.all([requireUser(), loadBook(), searchParams]);
   const now = today();
-  const months = b.months(now);
+  const months = base.months(now);
   const period = sp.month && months.includes(sp.month) ? sp.month : monthOf(now);
+  // an older month than the usual window is read on its own (with the month before, for the comparison)
+  const b = `${period}-01` < windowStart(now) ? await loadBook(period) : base;
   const p = b.spendingPower(now);
   const committed = committedText(p);
 
@@ -34,80 +33,80 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const versus = sameDays ? `1–${upto} ${monthShort(prev)}` : "last month";
   const incPill = changeText(inc, pInc, true, versus);
   const expPill = changeText(exp, pExp, false, versus);
+  const total = b.budgetTotal(period);
+  const net = inc - exp;
 
   const balances = [...b.balances()];
   const everyday = new Set(b.everydayAccounts);
   const status = b.budgetStatus(period);
-  const spent = b.monthExpenses(period);
-  const sumBy = (key: "group" | "category") => [...spent.reduce((m, t) => m.set(t[key], (m.get(t[key]) ?? 0) + t.amount),
-    new Map<string, number>())].sort((x, y) => y[1] - x[1]);
+  const over = status.filter((s) => s.spent > s.limit).length;
   const next = b.nextAuto();
-  const items = activity(b, 5);
+  const items = activity(b, 6);
 
   return (
     <>
-      <PageHead title={`Hello, ${user.name}`} />
-      <div className="grid2">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="text-sm text-muted">{monthName(monthOf(now))}</div>
+          <h1 className="page-title">Hello, {user.name}</h1>
+        </div>
+        <MonthSelect months={months} value={period} />
+      </div>
+
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="stack">
-          <div className={`hero${bannerIsRed(p) ? " over" : ""}`} data-state={p.state}>
-            <div className="hero-label">{bannerLabel(p, now)}</div>
-            <div className="hero-value">{money(p.left)}</div>
+          <div className={`rounded-3xl p-5 text-white shadow-soft md:p-6 ${bannerIsRed(p) ? "bg-hero-over" : "bg-hero"}`} data-state={p.state}>
+            <div className="text-sm font-medium text-white/70">{bannerLabel(p, now)}</div>
+            <div className="num mt-1 text-4xl font-bold tracking-tight [overflow-wrap:anywhere] md:text-5xl">{money(p.left)}</div>
+            {committed ? <p className="mt-3 text-[13px] leading-snug text-white/70">{committed}</p> : null}
           </div>
-          {committed ? <p className="caption" style={{ marginTop: "-.4rem" }}>{committed}</p> : null}
+
+          <div className="grid grid-cols-2 gap-3">
+            <Kpi label={`Income · ${monthShort(period)}`} value={money(inc)} foot={<Pill tone={incPill.tone}>{incPill.text}</Pill>} />
+            <Kpi label={`Expenses · ${monthShort(period)}`} value={money(exp)} foot={<Pill tone={expPill.tone}>{expPill.text}</Pill>} />
+            <Kpi label="Net this month" value={money(net, true)} tone={net < 0 ? "out" : "in"} foot={net < 0 ? "Spent more than came in" : "Kept"} />
+            <Kpi label="Budget left" value={total ? money(total.left) : "—"} tone={total && total.left < 0 ? "out" : undefined}
+              foot={total ? `${money(total.spent)} of ${money(total.limit)}` : <Link href="/budgets">Set a budget</Link>} />
+          </div>
+
+          {b.accountNames.length ? <AddEntryButton /> : (
+            <div className="note">Add an account first in <Link href="/settings">Settings → Accounts</Link>.</div>
+          )}
+
+          {b.feature("kitchen") ? <TodayMeals /> : null}
+
           <details className="card">
-            <summary>Account balances</summary>
-            <div className="bal-rows">
-              {balances.filter(([n]) => everyday.has(n)).map(([n, v]) => (
-                <div className="bal-row" key={n}><span>{n}</span><b className={v < 0 ? "neg" : ""}>{money(v)}</b></div>
+            <summary>Accounts<span className="section-aside ml-auto">{money(p.everyday)} everyday</span></summary>
+            {next ? <p className="caption mt-0 mb-2">Next auto entry: {next.name}, {money(next.amount)}, {
+              daysBetween(now, next.nextDate) <= 0 ? "today" : daysBetween(now, next.nextDate) === 1 ? "tomorrow" : dayMonth(next.nextDate)}.</p> : null}
+            <div className="grid gap-x-6 sm:grid-cols-2">
+              {balances.map(([n, v]) => (
+                <div className="flex justify-between gap-3 border-b border-line py-2 text-sm" key={n}>
+                  <span className="truncate text-muted">{n}{everyday.has(n) ? null : <i className="tag">savings</i>}</span>
+                  <b className={`num font-semibold${v < 0 ? " text-out" : ""}`}>{money(v)}</b>
+                </div>
               ))}
             </div>
-            {balances.some(([n]) => !everyday.has(n)) ? (
-              <div className="bal-rows bal-savings">
-                {balances.filter(([n]) => !everyday.has(n)).map(([n, v]) => (
-                  <div className="bal-row" key={n}><span>{n}<i className="tag">savings</i></span>
-                    <b className={v < 0 ? "neg" : ""}>{money(v)}</b></div>
-                ))}
-              </div>
-            ) : null}
-            <p className="caption">Savings are never counted as money to spend. Which accounts are everyday money is set in
-              Settings → Accounts.</p>
-            {next ? (
-              <p className="caption">Next auto entry: {next.name}, {money(next.amount)},{" "}
-                {daysBetween(now, next.nextDate) <= 0 ? "today" : daysBetween(now, next.nextDate) === 1 ? "tomorrow" : dayMonth(next.nextDate)}.</p>
-            ) : null}
             {b.unassigned ? (
               <Msg tone="warn">{b.unassigned} older entr{b.unassigned === 1 ? "y has" : "ies have"} no account, so balances
                 may be off. Fix this in Settings → Accounts.</Msg>
             ) : null}
           </details>
-          {b.accountNames.length ? <AddEntryButton /> : (
-            <div className="note">Add an account first in <Link href="/settings">Settings → Accounts</Link>.</div>
-          )}
         </div>
 
         <div className="stack">
-          {k ? <TodayCard k={k} /> : null}
-          <MonthSelect months={months} value={period} />
-          <div className="kpi-grid">
-            <div className="kpi"><div className="kpi-label">Income</div><div className="kpi-value">{money(inc)}</div>
-              <Pill tone={incPill.tone}>{incPill.text}</Pill></div>
-            <div className="kpi"><div className="kpi-label">Expenses</div><div className="kpi-value">{money(exp)}</div>
-              <Pill tone={expPill.tone}>{expPill.text}</Pill></div>
-          </div>
-          <details className="card" open>
-            <summary>Budgets and spending · {monthName(period, false)}</summary>
+          <details className="card">
+            <summary>Budgets<span className="section-aside ml-auto">{monthName(period, false)}{over ? ` · ${over} over` : ""}</span></summary>
             {status.length ? <BudgetList status={status} /> : (
               <Empty>No monthly budgets yet. <Link href="/budgets">Set a budget</Link></Empty>
             )}
-            <h3 className="section-title" style={{ margin: "1.2rem 0 .5rem" }}>Where the money went</h3>
-            {spent.length ? <Spending groups={sumBy("group")} categories={sumBy("category")} /> : <Empty>No expenses this month.</Empty>}
           </details>
           <details className="card">
             <summary>Recent activity</summary>
             {items.length ? (
               <>
                 <Feed items={items} showWho={b.multiMember} names={b.users.length > 1 ? b.nameOfUser : undefined} />
-                <Link className="btn ghost" href="/transactions">See all transactions</Link>
+                <Link className="btn ghost mt-1" href="/transactions">See all transactions</Link>
               </>
             ) : <Empty>Nothing recorded yet. Tap Add an entry to record your first one.</Empty>}
           </details>

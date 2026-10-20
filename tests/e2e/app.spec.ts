@@ -29,13 +29,12 @@ test("signed out, every page leads to sign-in and back", async ({ page }) => {
 
 test("Home: the banner, balances and this month", async ({ page }) => {
   await signIn(page);
-  const hero = page.locator(".hero");
+  const hero = page.locator("[data-state]");
   await expect(hero).toHaveAttribute("data-state", /.+/);
-  await expect(hero.locator(".hero-value")).toHaveText(/^−?GH₵[\d,]+\.\d\d$/);
-  await page.getByText("Account balances").click();
-  await expect(page.locator(".bal-savings")).toContainText("Susu");
-  await expect(page.locator(".bal-rows").first()).not.toContainText("Susu");
-  await expect(page.getByText("Income", { exact: true })).toBeVisible();
+  await expect(hero.locator(".num")).toHaveText(/^−?GH₵[\d,]+\.\d\d$/);
+  await page.locator("summary", { hasText: "Accounts" }).click(); // folded by default
+  await expect(page.getByText("Susu").locator("..")).toContainText("savings");
+  await expect(page.getByText(/^Income · /)).toBeVisible();
   await page.screenshot({ path: "test-results/home-phone.png", fullPage: true });
 });
 
@@ -53,7 +52,7 @@ test("add an expense, then the double-entry check", async ({ page }) => {
   await expect(sheet).toBeHidden();
 
   // the same again is caught
-  await page.locator(".fab").click();
+  await page.getByRole("button", { name: "Add an entry" }).last().click();
   await sheet.getByLabel(/Amount/).fill("37.50");
   await sheet.getByRole("group", { name: "Category" }).getByRole("button", { name: category, exact: true }).click();
   await sheet.getByRole("button", { name: "Save expense" }).click();
@@ -64,7 +63,7 @@ test("add an expense, then the double-entry check", async ({ page }) => {
 
 test("a pasted MoMo text fills the form in", async ({ page }) => {
   await signIn(page);
-  await page.locator(".fab").click();
+  await page.getByRole("button", { name: "Add an entry" }).last().click();
   const sheet = page.getByRole("dialog", { name: "Add an entry" });
   await sheet.getByText("Paste a MoMo text").click();
   await sheet.getByLabel("MoMo text").fill("Payment made for GHS 50.00 to KOFI MENSAH. Current Balance: GHS 120.50. "
@@ -76,7 +75,7 @@ test("a pasted MoMo text fills the form in", async ({ page }) => {
   await sheet.getByRole("button", { name: "Save expense" }).click();
   await expect(page.getByText(/Saved GH₵50\.00 expense to .* plus GH₵0\.50 fee/)).toBeVisible();
   // pasting it again is recognised by its transaction ID
-  await page.locator(".fab").click();
+  await page.getByRole("button", { name: "Add an entry" }).last().click();
   await sheet.getByText("Paste a MoMo text").click();
   await sheet.getByLabel("MoMo text").fill("Payment made for GHS 50.00 to KOFI MENSAH. Transaction ID: 51234567890.");
   await sheet.getByRole("button", { name: "Fill in the form" }).click();
@@ -88,7 +87,7 @@ test("transactions: change one, delete it, undo", async ({ page }) => {
   await signIn(page);
   await page.goto("/transactions");
   await page.getByLabel("Search").fill("Kofi Mensah");
-  await expect(page.locator(".pills")).toContainText("1 entry");
+  await expect(page.getByText("Download 1 entry as a spreadsheet (CSV)")).toBeVisible();
   await page.locator("button.feed-row").first().click();
   const sheet = page.getByRole("dialog", { name: "Change an entry" });
   await sheet.getByLabel(/Amount/).fill("55");
@@ -107,33 +106,7 @@ test("transactions: change one, delete it, undo", async ({ page }) => {
   await page.screenshot({ path: "test-results/transactions-phone.png", fullPage: true });
 });
 
-test("repeats: a rule that started last month adds its entries straight away", async ({ page }) => {
-  await signIn(page);
-  await page.goto("/repeats");
-  const form = page.locator(".card", { has: page.getByRole("heading", { name: "New auto transaction" }) });
-  await form.getByRole("group", { name: "Type" }).getByRole("button", { name: "Expense" }).click();
-  await form.getByLabel("Name").fill("Test gym");
-  await form.getByLabel(/Amount/).fill("80");
-  await form.getByLabel("Repeats").selectOption("Weekly");
-  const start = new Date(Date.now() - 15 * 86_400_000).toISOString().slice(0, 10);
-  await form.getByLabel("First run").fill(start);
-  await expect(form.getByText("This start date is in the past, so 3 entries will be added straight away.")).toBeVisible();
-  await page.getByRole("button", { name: "Create auto transaction" }).click();
-  await expect(page.getByText("Created 'Test gym'")).toBeVisible();
-  await expect(page.locator(".rule", { hasText: "Test gym" })).toContainText("Active");
-  await page.goto("/transactions?q=Test%20gym&month=all");
-  await expect(page.locator(".pills")).toContainText("3 entries");
-
-  await page.goto("/repeats");
-  await page.getByLabel("Auto transaction").selectOption({ label: "Test gym" });
-  await page.getByRole("button", { name: "Pause" }).click();
-  await expect(page.getByText("Paused 'Test gym'")).toBeVisible();
-  await expect(page.locator(".rule", { hasText: "Test gym" })).toContainText("Paused");
-  await page.getByRole("button", { name: "Resume" }).click();
-  await expect(page.locator(".rule", { hasText: "Test gym" })).toContainText("Active");
-});
-
-test("budgets and goals", async ({ page }) => {
+test("budgets", async ({ page }) => {
   await signIn(page);
   await page.goto("/budgets");
   await page.getByLabel("Budget for").selectOption({ label: "Transportation (whole group)" });
@@ -141,13 +114,6 @@ test("budgets and goals", async ({ page }) => {
   await page.getByRole("button", { name: "Save budget" }).click();
   await expect(page.getByText("Budget for Transportation set to GH₵400.00 a month")).toBeVisible();
   await expect(page.locator(".prog-name", { hasText: "Transportation" })).toBeVisible();
-
-  await page.goto("/goals");
-  await page.getByRole("combobox", { name: "Goal", exact: true }).selectOption({ label: "School fees" });
-  await page.getByLabel(/Amount/).fill("100");
-  await page.getByRole("button", { name: "Add to goal" }).click();
-  await expect(page.getByText("Added GH₵100.00 to School fees")).toBeVisible();
-  await expect(page.getByRole("progressbar", { name: "School fees" })).toBeVisible();
 });
 
 test("settings: renaming an account renames it everywhere", async ({ page }) => {
@@ -159,8 +125,6 @@ test("settings: renaming an account renames it everywhere", async ({ page }) => 
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Saved 'Flip Wallet'")).toBeVisible();
   await expect(page.locator("table")).toContainText("Flip Wallet");
-  await page.goto("/repeats");
-  await expect(page.locator(".rule", { hasText: "Move to Flip" })).toContainText("GCB to Flip Wallet");
 });
 
 test("settings: a category still in use can only go once its uses have somewhere to go", async ({ page }) => {
@@ -184,8 +148,6 @@ test("settings: a category still in use can only go once its uses have somewhere
   await del.click();
   await page.getByRole("dialog", { name: "Please confirm" }).getByRole("button", { name: "Delete" }).click();
   await expect(page.getByText("Deleted 'Internet Data'")).toBeVisible();
-  await page.goto("/repeats");
-  await expect(page.locator(".rule", { hasText: "Data bundle" })).toContainText("Telephone calls credit");
 });
 
 test("people: an invite code lets the family join", async ({ page, browser }) => {

@@ -27,9 +27,19 @@ export type UserRow = {
   id: number; username: string; displayName: string; isOwner: boolean; lastLogin: string | null; createdAt: string;
 };
 
+/** Figures over the whole history, worked out by the database, so only recent rows need to be read. Without it the
+ * Book works them out from `tx`, which then has to be every transaction. */
+export type Summary = {
+  balances: Record<string, number>; // what came in minus what went out, per account, before opening balances
+  months: MonthKey[];
+  members: string[];
+  unassigned: number;
+};
+
 export type BookData = {
   tx: TxRow[]; categories: CategoryRow[]; accounts: AccountRow[]; budgets: BudgetRow[]; rules: RuleRow[];
-  goals: GoalRow[]; contributions: ContributionRow[]; users: UserRow[]; features: Record<string, string>;
+  goals?: GoalRow[]; contributions?: ContributionRow[]; users: UserRow[]; features: Record<string, string>;
+  summary?: Summary;
 };
 
 export type BudgetStatus = { name: string; limit: number; spent: number; pct: number; isGroup: boolean };
@@ -51,8 +61,6 @@ export class Book {
   readonly accounts: AccountRow[];
   readonly budgets: BudgetRow[];
   readonly rules: RuleRow[];
-  readonly goals: GoalRow[];
-  readonly contributions: ContributionRow[];
   readonly users: UserRow[];
   readonly groupOf: Map<string, string>;
   readonly kindOf: Map<string, Kind>;
@@ -60,6 +68,7 @@ export class Book {
   readonly accountNames: string[];
   readonly nameOfUser: Map<string, string>;
   private readonly features: Record<string, string>;
+  private readonly summary: Summary | null;
   private cache = new Map<string, unknown>();
 
   constructor(d: BookData) {
@@ -67,10 +76,9 @@ export class Book {
     this.accounts = [...d.accounts].sort((a, b) => a.id - b.id);
     this.budgets = [...d.budgets].sort((a, b) => a.category.localeCompare(b.category));
     this.rules = [...d.rules].sort((a, b) => a.id - b.id);
-    this.goals = [...d.goals].sort((a, b) => a.id - b.id);
-    this.contributions = [...d.contributions].sort((a, b) => (a.date === b.date ? b.id - a.id : a.date < b.date ? 1 : -1));
     this.users = [...d.users].sort((a, b) => a.id - b.id);
     this.features = d.features;
+    this.summary = d.summary ?? null;
     this.groupOf = new Map(this.categories.map((c) => [c.name, c.groupName]));
     this.kindOf = new Map(this.categories.map((c) => [c.name, c.kind]));
     this.groups = [...new Set(this.categories.map((c) => c.groupName))];
@@ -148,12 +156,13 @@ export class Book {
 
   // ---- people and accounts -----------------------------------------------------------------------------------
   members(): string[] {
-    const others = [...new Set(this.tx.map((t) => t.member))].filter((m) => m !== SHARED).sort();
+    const all = this.summary ? this.summary.members : this.tx.map((t) => t.member);
+    const others = [...new Set(all)].filter((m) => m !== SHARED).sort();
     return [SHARED, ...others];
   }
 
   get multiMember(): boolean {
-    return new Set(this.tx.map((t) => t.member)).size > 1;
+    return new Set(this.summary ? this.summary.members : this.tx.map((t) => t.member)).size > 1;
   }
 
   balances(): Map<string, number> {
@@ -162,7 +171,8 @@ export class Book {
       const add = (name: string, x: number) => {
         if (bal.has(name)) bal.set(name, bal.get(name)! + x);
       };
-      for (const t of this.tx) {
+      if (this.summary) for (const [name, x] of Object.entries(this.summary.balances)) add(name, x);
+      else for (const t of this.tx) {
         if (t.type === "Income") add(t.account, t.amount);
         else if (t.type === "Expense") add(t.account, -t.amount);
         else {
@@ -181,7 +191,7 @@ export class Book {
 
   /** Income and expense entries with no account (from before accounts existed). */
   get unassigned(): number {
-    return this.tx.filter((t) => t.account === "" && t.type !== "Transfer").length;
+    return this.summary?.unassigned ?? this.tx.filter((t) => t.account === "" && t.type !== "Transfer").length;
   }
 
   /** The account last used for this type of entry, so the usual choice is already picked. */
@@ -199,7 +209,8 @@ export class Book {
   // ---- months ------------------------------------------------------------------------------------------------
   /** Months with entries, newest first, always including this month. */
   months(now: ISODate = todayISO()): MonthKey[] {
-    return [...new Set([...this.tx.map((t) => t.month), monthOf(now)])].sort().reverse();
+    const seen = this.summary ? this.summary.months : this.tx.map((t) => t.month);
+    return [...new Set([...seen, monthOf(now)])].sort().reverse();
   }
 
   /** [income, expenses] for a month. uptoDay=12 counts only the 1st to the 12th, so this month so far can be

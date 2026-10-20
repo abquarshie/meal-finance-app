@@ -1,19 +1,18 @@
 import Link from "next/link";
 import { KitchenHead } from "@/components/kitchen/KitchenTabs";
-import { AddToPlan, type Idea, type Option } from "@/components/kitchen/AddToPlan";
+import { AddToPlan, type Option } from "@/components/kitchen/AddToPlan";
 import { CopyWeek } from "@/components/kitchen/CopyWeek";
-import { MealCard, SmallerPot, type PayInfo } from "@/components/kitchen/MealCard";
+import { MealCard, type PayInfo } from "@/components/kitchen/MealCard";
 import { TodayCard } from "@/components/kitchen/TodayCard";
 import { Empty, Msg, Pill } from "@/components/ui";
 import type { Book } from "@/lib/book";
 import { addDays, today as todayISO } from "@/lib/dates";
 import { guard, type Kitchen } from "@/lib/kitchen/kitchen";
 import { loadKitchen } from "@/lib/kitchen/load";
-import { aD, boughtCost, costOf, repeatPlan, shoppingList, shortfall, SLOTS, suggest, totalNeeds, type Entry } from "@/lib/kitchen/logic";
+import { aD, repeatPlan, SLOTS, type Entry } from "@/lib/kitchen/logic";
 import { frac, unitsFor } from "@/lib/kitchen/units";
 import { dayView, type DayView } from "@/lib/kitchen/views";
 import { loadBook } from "@/lib/load";
-import { money } from "@/lib/money";
 
 export const metadata = { title: "Meal plan" };
 
@@ -43,51 +42,13 @@ function nextSlot(now = new Date()) {
   return h < 10 ? "Breakfast" : h < 15 ? "Lunch" : "Supper";
 }
 
-export default async function MealPlan({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
-  const [k, b, sp] = await Promise.all([loadKitchen(), loadBook(), searchParams]);
+export default async function MealPlan() {
+  const [k, b] = await Promise.all([loadKitchen(), loadBook()]);
   const today = todayISO();
   const [start, end] = k.window(today);
   const pay = { accounts: b.accountNames, account: b.defaultAccount("Expense"), categories: b.categoryNames("Expense") };
   const usual = SLOTS.map((s) => `${frac(k.slotPeople[s])} at ${s.toLowerCase()}`).join(", ");
   const head = <KitchenHead current="/meals" title="Meal plan" sub={`Today to ${aD(end)} · usually ${usual}`} />;
-  const viewTabs = (
-    <div className="seg" role="group" aria-label="Show" style={{ maxWidth: 360, marginBottom: "1rem" }}>
-      <Link href="/meals" role="button" aria-pressed={sp.view !== "past"}>Next 2 weeks</Link>
-      <Link href="/meals?view=past" role="button" aria-pressed={sp.view === "past"}>Past 2 weeks</Link>
-    </div>
-  );
-  if (sp.view === "past") {
-    return (
-      <>
-        {head}{viewTabs}
-        <p className="caption">Tick anything that was cooked but never ticked off, so the pantry stays right.</p>
-        <div className="stack">{Array.from({ length: 14 }, (_, i) => addDays(today, -1 - i)).map((d) => (
-          <DayCard key={d} d={dayView(k, d, today)} k={k} b={b} pay={pay} />))}</div>
-      </>
-    );
-  }
-
-  // what the next two weeks cost, and what's still to buy
-  const entries = k.openEntries(start, end);
-  let costLine: React.ReactNode = null;
-  if (entries.length) {
-    const [ingredients, unknown] = costOf(totalNeeds(entries, k.recipes, k.items, undefined, k.packs), k.prices);
-    const [bought, boughtUnknown] = boughtCost(entries, k.recipes);
-    const meals = ingredients + bought;
-    const toBuy = shoppingList(shortfall(k.allocation(today), entries), new Map(), undefined, k.prices, k.packs);
-    const buy = toBuy.reduce((a, r) => a + (r.est ?? 0), 0);
-    const buyUnknown = toBuy.filter((r) => r.est === null).length;
-    const n = k.mealCount(entries);
-    costLine = !meals && !buy ? <p className="caption">Costs show here once you&apos;ve saved a shopping trip and Cashew knows your prices.</p> : (
-      <div className="note">
-        <b>{n} meal{n === 1 ? "" : "s"}</b> still to cook in the next two weeks: about <b>{money(meals)}</b> of ingredients
-        {unknown + boughtUnknown ? ` (no price yet for ${unknown + boughtUnknown})` : ""}.{" "}
-        {toBuy.length ? <>After what&apos;s in the pantry and fridge, still to buy: about <b>{money(buy)}</b>
-          {buyUnknown ? ` plus ${buyUnknown} item${buyUnknown === 1 ? "" : "s"} with no price yet` : ""}.</>
-          : "Everything is already in the pantry or fridge."}
-      </div>
-    );
-  }
   const g = guard(k, b, today);
   const copy = repeatPlan(k.plan, today, 14);
 
@@ -114,25 +75,14 @@ export default async function MealPlan({ searchParams }: { searchParams: Promise
   ];
   const mealPeople: Record<string, number> = {};
   for (const d of days) for (const s of SLOTS) mealPeople[`${d}|${s}`] = k.mealPeople(d, s);
-  const home = new Map([...k.recipes].filter(([, r]) => !r.bought && !["starch", "side"].includes(r.role ?? "main")));
-  const ideas: Idea[] = suggest(home, k.items, k.pantry, k.fridge, k.plan.filter((e) => e.day >= addDays(today, -21)), today, k.packs)
-    .map((x) => ({ recipeId: x.recipeId, name: k.recipes.get(x.recipeId)!.name,
-      why: (s => s ? s[0].toUpperCase() + s.slice(1).toLowerCase() : "")(x.reasons.join("; ")) }));
-
   return (
     <>
-      {head}{viewTabs}
-      <div className="stack" style={{ marginBottom: "1rem" }}>
+      {head}
+      <div className="stack mb-4">
         <TodayCard k={k} onPlan />
         {copy.length ? <CopyWeek label={!k.entries(start, end).length ? `Copy the week before (${k.mealCount(copy)} meals)`
           : `Fill the empty meals from the week before (${k.mealCount(copy)})`} primary={!k.entries(start, end).length} /> : null}
-        {costLine}
         {g ? <Msg tone={g[0] as "warn" | "hint"}>{g[1]}</Msg> : null}
-        {k.potWarnings(today).map((p) => (
-          <div key={p.entryId} className="note warn pot">
-            <span>{p.text}</span> <SmallerPot entryId={p.entryId} suggest={p.suggest} label={`Cook ${frac(p.suggest)} instead`} />
-          </div>
-        ))}
       </div>
       <div className="grid32">
         <div className="stack">
@@ -154,7 +104,7 @@ export default async function MealPlan({ searchParams }: { searchParams: Promise
             );
           })}
         </div>
-        <AddToPlan today={today} nextSlot={nextSlot()} usual={k.slotPeople} mealPeople={mealPeople} options={options} ideas={ideas} />
+        <AddToPlan today={today} nextSlot={nextSlot()} usual={k.slotPeople} mealPeople={mealPeople} options={options} />
       </div>
     </>
   );

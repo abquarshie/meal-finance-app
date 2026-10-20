@@ -1,6 +1,6 @@
 import "server-only";
 import { cache } from "react";
-import { addDays, fromISO, today, toISO } from "../dates";
+import { addDays, fromISO, monthOf, today, toISO } from "../dates";
 import { prisma } from "../db";
 import { Kitchen, type KitchenData } from "./kitchen";
 import type { Need } from "./logic";
@@ -12,9 +12,7 @@ const num = (x: unknown) => Number(x ?? 0);
 export const loadKitchen = cache(async (): Promise<Kitchen> => readKitchen());
 
 export async function readKitchen(now = today()): Promise<Kitchen> {
-  const year = fromISO(addDays(now, -400));
-  const [ingredients, recipes, items, pairings, pairingItems, plan, fridge, pantry, prices, trips, history, bought, waste,
-    settings] = await Promise.all([
+  const [ingredients, recipes, items, pairings, pairingItems, plan, fridge, pantry, prices, trips, waste, settings] = await Promise.all([
     prisma.ingredient.findMany(),
     prisma.recipe.findMany(),
     prisma.recipeItem.findMany({ orderBy: { id: "asc" } }),
@@ -26,10 +24,8 @@ export async function readKitchen(now = today()): Promise<Kitchen> {
     prisma.pantryStock.findMany(),
     prisma.priceKnown.findMany(),
     prisma.trip.findMany({ orderBy: [{ date: "desc" }, { id: "desc" }], take: 20, include: { _count: { select: { items: true } } } }),
-    prisma.tripItem.findMany({ where: { qty: { gt: 0 }, ingredientId: { not: null }, trip: { date: { gte: year } } },
-      include: { trip: true }, orderBy: { id: "asc" } }),
-    prisma.boughtFood.findMany({ where: { date: { gte: year }, qty: { gt: 0 } }, orderBy: [{ date: "asc" }, { id: "asc" }] }),
-    prisma.waste.findMany({ where: { date: { gte: year } }, orderBy: [{ date: "desc" }, { id: "desc" }] }),
+    // only this month's waste is shown (on the fridge page); a year of trip items and bought food is no longer read
+    prisma.waste.findMany({ where: { date: { gte: fromISO(`${monthOf(now)}-01`) } }, orderBy: [{ date: "desc" }, { id: "desc" }] }),
     prisma.appMeta.findMany({ where: { key: { startsWith: "meals_" } } }),
   ]);
   const data: KitchenData = {
@@ -54,10 +50,6 @@ export async function readKitchen(now = today()): Promise<Kitchen> {
     prices: prices.map((p) => ({ ingredientId: p.ingredientId, unit: p.unit, perUnit: num(p.perUnit) })),
     trips: trips.map((t) => ({ id: t.id, date: toISO(t.date), account: t.account, total: num(t.total), createdBy: t.createdBy,
       shop: t.shop, items: t._count.items })),
-    history: history.map((h) => ({ ingredientId: h.ingredientId!, unit: h.unit, qty: num(h.qty), price: num(h.price),
-      date: toISO(h.trip.date), shop: h.trip.shop, tripId: h.tripId })),
-    bought: bought.map((x) => ({ date: toISO(x.date), recipeId: x.recipeId, label: x.label, qty: num(x.qty), unit: x.unit,
-      paid: num(x.paid), shop: x.shop })),
     waste: waste.map((w) => ({ id: w.id, date: toISO(w.date), label: w.label, amount: num(w.amount), unit: w.unit,
       value: n(w.value), recipeId: w.recipeId })),
     settings: Object.fromEntries(settings.map((s) => [s.key, s.value ?? ""])),

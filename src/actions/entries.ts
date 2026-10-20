@@ -3,10 +3,10 @@ import { z } from "zod";
 import { amount, attempt, fail, isoDate, kind, ok, optionalMoney, type Result } from "@/lib/action";
 import { requireUser } from "@/lib/auth";
 import { budgetAlerts } from "@/lib/book";
-import { dayMonth, fromISO, TIME_ZONE, today, toISO } from "@/lib/dates";
+import { dayMonth, fromISO, monthOf, TIME_ZONE, today, toISO } from "@/lib/dates";
 import { prisma } from "@/lib/db";
 import { loadBook } from "@/lib/load";
-import { FEE_CATEGORY, money, SHARED, KINDS } from "@/lib/money";
+import { AUTO_PREFIX, FEE_CATEGORY, FEE_PREFIX, money, SHARED, KINDS } from "@/lib/money";
 
 const Entry = z.object({
   kind, amount, fee: optionalMoney, date: isoDate,
@@ -53,7 +53,7 @@ export async function addEntry(input: EntryInput): Promise<EntryResult> {
   const user = await requireUser();
   return attempt<{ alerts: string[] }>(async () => {
     const e = Entry.parse(input);
-    const book = await loadBook();
+    const book = await loadBook(monthOf(e.date)); // that month's spending, for the budget alerts
     if (!book.accountNames.includes(e.account)) return fail("Pick one of your accounts.");
     if (!book.kindOf.has(e.category)) return fail("Pick one of your categories.");
     if (e.kind === "Transfer") {
@@ -154,8 +154,10 @@ export async function restoreTransactions(rows: DeletedRow[]): Promise<Result> {
 export async function categoryFor(kindName: string, party: string): Promise<string | null> {
   await requireUser();
   if (!party || !KINDS.includes(kindName as never)) return null;
-  const book = await loadBook();
+  const [book, hit] = await Promise.all([loadBook(), prisma.transaction.findFirst({
+    where: { type: kindName, note: { contains: party, mode: "insensitive" },
+      NOT: [{ note: { startsWith: AUTO_PREFIX } }, { note: { startsWith: FEE_PREFIX } }] },
+    orderBy: [{ date: "desc" }, { id: "desc" }], select: { category: true } })]);
   const names = book.categoryNames(kindName as (typeof KINDS)[number]);
-  const hit = book.manual.find((t) => t.type === kindName && t.note.toLowerCase().includes(party.toLowerCase()));
   return hit && names.includes(hit.category) ? hit.category : null;
 }

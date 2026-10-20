@@ -65,7 +65,7 @@ export function AddEntry({ ctx }: { ctx: EntryContext }) {
   if (!ctx.accounts.length) return null;
   return (
     <>
-      <button type="button" className="fab" aria-label="Add an entry" onClick={() => setOpen(true)}><Icon name="add" /></button>
+      <button type="button" className="fixed right-4 bottom-[calc(76px+env(safe-area-inset-bottom))] z-30 grid size-14 cursor-pointer place-items-center rounded-2xl border-0 bg-brand text-on-brand shadow-lift md:hidden [&_svg]:size-7" aria-label="Add an entry" onClick={() => setOpen(true)}><Icon name="add" /></button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Add an entry">
         <EntryForm ctx={ctx} onDone={() => setOpen(false)} />
       </Sheet>

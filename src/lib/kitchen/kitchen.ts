@@ -22,8 +22,6 @@ export type IngredientRow = {
 };
 export type RecipeRow = Recipe & { id: number };
 export type TripRow = { id: number; date: ISODate; account: string; total: number; createdBy: string | null; shop: string | null; items: number };
-export type HistoryRow = { ingredientId: number; unit: string; qty: number; price: number; date: ISODate; shop: string | null; tripId: number; perUnit: number };
-export type BoughtRow = { date: ISODate; recipeId: number | null; label: string; qty: number; unit: string; paid: number; shop: string | null };
 export type WasteRow = { id: number; date: ISODate; label: string; amount: number; unit: string; value: number | null; recipeId: number | null };
 export type Part = { recipeId?: number; ingredientId?: number; qty?: number; unit?: string };
 
@@ -35,7 +33,7 @@ export type KitchenData = {
   plan: Entry[]; fridge: Batch[];
   pantry: { ingredientId: number; unit: string; qty: number }[];
   prices: { ingredientId: number; unit: string; perUnit: number }[];
-  trips: TripRow[]; history: Omit<HistoryRow, "perUnit">[]; bought: BoughtRow[]; waste: WasteRow[];
+  trips: TripRow[]; waste: WasteRow[]; // waste: this month only
   settings: Record<string, string>;
 };
 
@@ -60,9 +58,7 @@ export class Kitchen {
   readonly prices = new Map<string, number>();
   readonly lowLevels = new Map<string, number>();
   readonly trips: TripRow[];
-  readonly history: HistoryRow[];
   readonly waste: WasteRow[];
-  readonly boughtHistory: BoughtRow[];
   readonly household: number;
   readonly slotPeople: Record<string, number> = {};
   private byDay = new Map<ISODate, Entry[]>();
@@ -111,10 +107,7 @@ export class Kitchen {
     for (const p of f.prices) this.prices.set(sk(p.ingredientId, p.unit), p.perUnit);
     for (const i of this.ingredients) if (i.lowLevel !== null && i.lowLevel !== undefined) this.lowLevels.set(sk(i.id, baseOf(i.unit)), i.lowLevel);
     this.trips = [...f.trips].sort((a, b) => cmp(b.date, a.date) || b.id - a.id);
-    this.history = f.history.map((h) => ({ ...h, perUnit: h.price / h.qty }))
-      .sort((a, b) => cmp(a.date, b.date) || a.tripId - b.tripId);
     this.waste = [...f.waste].sort((a, b) => cmp(b.date, a.date) || b.id - a.id);
-    this.boughtHistory = [...f.bought].sort((a, b) => cmp(a.date, b.date));
     const hh = Number.parseInt(f.settings[HOUSEHOLD_KEY] ?? "4", 10);
     this.household = Number.isNaN(hh) ? 4 : Math.max(hh, 1);
     for (const slot of SLOTS) {
