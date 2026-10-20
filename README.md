@@ -4,7 +4,7 @@ Cashew as a lean Next.js app, styled with Tailwind CSS: sign-in, Home (summary c
 texts), Transactions, Budgets and Settings, and the kitchen: the meal plan, the shopping list and shopping trips, the
 pantry (food and household supplies), the fridge, recipes and ingredients.
 
-Goals, the Repeats page, price charts, the pairings editor and meal ideas were taken out to keep the app fast. Their
+Home shows today's meals from one small query. Goals, the Repeats page, price charts, the pairings editor and meal ideas were taken out to keep the app fast. Their
 tables are untouched, and auto transactions still run (here, in the Python app and in the daily job).
 
 It uses **the same Postgres database as the Python Cashew**, table for table. Nothing needs migrating:

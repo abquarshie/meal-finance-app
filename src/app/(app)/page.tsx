@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AddEntryButton } from "@/components/AddEntry";
 import { BudgetList } from "@/components/Budgets";
 import { activity, Feed } from "@/components/Feed";
+import { TodayMeals } from "@/components/kitchen/TodayMeals";
 import { MonthSelect } from "@/components/MonthSelect";
 import { Empty, Kpi, Msg, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
@@ -71,6 +72,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
           {b.accountNames.length ? <AddEntryButton /> : (
             <div className="note">Add an account first in <Link href="/settings">Settings → Accounts</Link>.</div>
           )}
+
+          {b.feature("kitchen") ? <TodayMeals /> : null}
 
           <details className="card">
             <summary>Accounts<span className="section-aside ml-auto">{money(p.everyday)} everyday</span></summary>
