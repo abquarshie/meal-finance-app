@@ -1,7 +1,8 @@
 // Runs only when PARITY_JSON points at what the Python Book said about the same database (see tests/parity/).
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { readBook as loadBook } from "@/lib/load"; // read only: adds no auto transactions
+import { readBook } from "@/lib/load"; // read only: adds no auto transactions
+const loadBook = () => readBook({ since: null }); // every transaction, like the Python Book
 
 const file = process.env.PARITY_JSON;
 const want = file ? JSON.parse(readFileSync(file, "utf8")) : null;

@@ -13,6 +13,6 @@ describe.skipIf(!url)("the starter lists and catalog", () => {
     await prisma.$executeRaw`DELETE FROM meals.pairings WHERE name LIKE 'Fufu%'`;
     await prisma.$executeRaw`UPDATE meals.ingredients SET section = NULL WHERE name = 'Yam'`;
     const r = await import("@/actions/recipes");
-    for (const x of [await r.addStarterRecipes(), await r.addStarterSupplies(), await r.addCatalog()]) expect(x.ok).toBe(true);
+    for (const x of [await r.addStarterRecipes(), await r.addCatalog()]) expect(x.ok).toBe(true);
   }, 60_000);
 });

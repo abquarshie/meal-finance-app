@@ -4,7 +4,7 @@ import { cleanNote, money, SHARED } from "@/lib/money";
 import { Pill } from "./ui";
 
 export type FeedItem = {
-  key: string; date: ISODate; kind: "Income" | "Expense" | "Transfer" | "Goal"; title: string; amount: number;
+  key: string; date: ISODate; kind: "Income" | "Expense" | "Transfer"; title: string; amount: number;
   account: string; to: string; who: string; note: string; auto: boolean; fee: boolean; by: string;
 };
 
@@ -13,23 +13,16 @@ export function txItem(t: Tx): FeedItem {
     to: t.toAccount, who: t.member, note: cleanNote(t.note), auto: t.isAuto, fee: t.isFee, by: t.createdBy };
 }
 
-/** Recent transactions and goal savings, newest first. */
+/** The latest transactions, newest first. */
 export function activity(b: Book, limit = 8): FeedItem[] {
-  const items: (FeedItem & { order: number })[] = b.tx.slice(0, limit * 2).map((t) => ({ ...txItem(t), order: t.id }));
-  for (const c of b.contributions.slice(0, limit)) {
-    items.push({ key: `g${c.id}`, date: c.date, kind: "Goal", title: c.goal, amount: c.amount, account: "", to: "",
-      who: SHARED, note: c.note, auto: false, fee: false, by: c.createdBy, order: -c.id });
-  }
-  items.sort((a, b) => (a.date === b.date ? b.order - a.order : a.date < b.date ? 1 : -1));
-  return items.slice(0, limit);
+  return b.tx.slice(0, limit).map(txItem);
 }
 
 export function FeedRow({ i, showWho, names }: { i: FeedItem; showWho?: boolean; names?: Map<string, string> }) {
   const [icon, cls, amount, where] =
     i.kind === "Income" ? ["+", "in", money(i.amount, true), i.account]
       : i.kind === "Expense" ? ["−", "out", money(-i.amount, true), i.account]
-        : i.kind === "Transfer" ? ["⇄", "move", money(i.amount), `${i.account || "?"} to ${i.to || "?"}`]
-          : ["★", "goal", money(i.amount), "Saved towards goal"];
+        : ["⇄", "move", money(i.amount), `${i.account || "?"} to ${i.to || "?"}`];
   const meta: React.ReactNode[] = [];
   if (where) meta.push(<b key="w">{where}</b>);
   if (showWho && i.who !== SHARED) meta.push(i.who);

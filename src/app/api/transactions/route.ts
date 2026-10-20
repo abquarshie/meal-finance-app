@@ -1,6 +1,6 @@
 import { getUser } from "@/lib/auth";
 import { today } from "@/lib/dates";
-import { applyFilter, readFilter } from "@/lib/filters";
+import { findTransactions, readFilter } from "@/lib/filters";
 import { readBook } from "@/lib/load";
 
 /** The entries on screen as a CSV file that opens in Excel or Google Sheets. */
@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   if (!(await getUser())) return new Response("Sign in first.", { status: 401 });
   const b = await readBook();
   const sp = Object.fromEntries(new URL(req.url).searchParams);
-  const rows = applyFilter(b, readFilter(b, sp));
+  const { rows } = await findTransactions(b, readFilter(b, sp));
   const cols = ["id", "date", "type", "group", "category", "account", "to_account", "member", "amount", "note"] as const;
   const cell = (v: unknown) => {
     let s = String(v ?? "");

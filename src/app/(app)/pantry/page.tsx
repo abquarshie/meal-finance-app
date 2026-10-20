@@ -11,7 +11,7 @@ export const metadata = { title: "Pantry" };
 export default async function Pantry() {
   const k = await loadKitchen();
   const keys = new Set([...k.ingredients.map((i) => sk(i.id, baseOf(i.unit))), ...k.pantry.keys()]);
-  const rows: StockRow[] = [...keys].map(unkey).filter(([ing]) => !k.supplies.has(ing) && k.names.has(ing))
+  const rows: StockRow[] = [...keys].map(unkey).filter(([ing]) => k.names.has(ing))
     .sort((a, b) => ((k.names.get(a[0]) ?? "").toLowerCase() < (k.names.get(b[0]) ?? "").toLowerCase() ? -1 : 1))
     .map(([ing, base]) => {
       const usual = k.unitOf.get(ing) ?? base;

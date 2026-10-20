@@ -1,9 +1,11 @@
 # Cashew (Next.js)
 
-Cashew as a Next.js app: sign-in, Home, Add an entry (with MoMo texts), Transactions, Repeats (auto transactions),
-Budgets, Goals and Settings, and the whole kitchen: the meal plan (one tick per meal, people per meal, pots that would
-go to waste, bought food), the shopping list with trips and prices, the pantry, the fridge, recipes, ingredients,
-pairings, the Ghanaian catalog and household supplies.
+Cashew as a lean Next.js app, styled with Tailwind CSS: sign-in, Home (summary cards), Add an entry (with MoMo
+texts), Transactions, Budgets and Settings, and the kitchen: the meal plan, the shopping list and shopping trips, the
+pantry (food and household supplies), the fridge, recipes and ingredients.
+
+Goals, the Repeats page, price charts, the pairings editor and meal ideas were taken out to keep the app fast. Their
+tables are untouched, and auto transactions still run (here, in the Python app and in the daily job).
 
 It uses **the same Postgres database as the Python Cashew**, table for table. Nothing needs migrating:
 
@@ -55,7 +57,9 @@ src/lib/book.ts           balances, budgets, auto payments still due, the banner
 src/lib/rules.ts          auto transaction dates (a port of auto_rules.py)
 src/lib/momo.ts           reading MoMo, Telecel Cash and AT Money texts (a port of core/momo.py)
 src/lib/auth.ts           passwords, lock-out after 5 tries, sessions in an httpOnly cookie
-src/lib/load.ts           reads everything once per request; adds due auto transactions first
+src/lib/load.ts           reads recent rows once per request, plus whole-history totals added up by the database;
+                          adds due auto transactions first
+src/lib/filters.ts        the Transactions filters, run as a database query
 src/actions/*.ts          Server Actions: every change, checked with zod, signed-in only, in one transaction
 src/app/(app)/…           the pages (server components) with small client components for forms
 src/lib/kitchen/          the kitchen: units, the planner's arithmetic (allocate, reminders, shopping list),

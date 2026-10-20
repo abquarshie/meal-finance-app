@@ -145,30 +145,6 @@ export async function deleteRecipe(recipeId: number): Promise<Result> {
   });
 }
 
-// ---- pairings --------------------------------------------------------------------------------------------------
-export async function savePairing(pairingName: string, recipeIds: number[], side: { ingredientId: number; qty: number; unit: string } | null)
-  : Promise<Result> {
-  await requireUser();
-  return attempt(async () => {
-    const n = name(120).parse(pairingName);
-    const rids = z.array(id).max(10).parse(recipeIds);
-    const s = side ? z.object({ ingredientId: id, qty: z.number().positive().max(1e6), unit }).parse(side) : null;
-    if (rids.length + (s ? 1 : 0) < 2) return fail("Pick at least two things eaten together.");
-    if (await nameTaken("pairing", n)) return fail("You already have a pairing with this name.");
-    await prisma.pairing.create({ data: { name: n, items: { create: [...rids.map((recipeId) => ({ recipeId })),
-      ...(s ? [{ ingredientId: s.ingredientId, qty: s.qty, unit: s.unit }] : [])] } } });
-    return ok(`Saved ${n}`);
-  });
-}
-
-export async function deletePairing(pairingId: number): Promise<Result> {
-  await requireUser();
-  return attempt(async () => {
-    const p = await prisma.pairing.delete({ where: { id: id.parse(pairingId) } });
-    return ok(`Removed ${p.name}`);
-  });
-}
-
 // ---- starter lists and the catalog -----------------------------------------------------------------------------
 export async function addCatalog(): Promise<Result> {
   await requireUser();
@@ -183,13 +159,5 @@ export async function addStarterRecipes(): Promise<Result> {
   return attempt(async () => {
     const n = await prisma.$transaction((tx) => loadStarter(tx), { timeout: 60_000 });
     return ok(`Added ${n} recipe${n === 1 ? "" : "s"}`);
-  });
-}
-
-export async function addStarterSupplies(): Promise<Result> {
-  await requireUser();
-  return attempt(async () => {
-    const n = await prisma.$transaction((tx) => loadSupplies(tx));
-    return ok(`Added ${n} household item${n === 1 ? "" : "s"}. Count what you have with + and −.`);
   });
 }

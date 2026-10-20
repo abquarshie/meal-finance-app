@@ -6,28 +6,20 @@ import { guard } from "@/lib/kitchen/kitchen";
 import { loadKitchen } from "@/lib/kitchen/load";
 import { aD, SLOTS } from "@/lib/kitchen/logic";
 import { listRows, qtyLabel, shoppingRows } from "@/lib/kitchen/shopping";
-import { frac, isLoose, plural, toBase, unitsFor } from "@/lib/kitchen/units";
+import { frac, plural, toBase, unitsFor } from "@/lib/kitchen/units";
 import { loadBook } from "@/lib/load";
 import { money } from "@/lib/money";
-import { PriceChart } from "./PriceChart";
 import { ShoppingList } from "./ShoppingList";
 
 export const metadata = { title: "Shopping list" };
 const SCOPES = [["7", "Next 7 days"], ["14", "Next 14 days"], ["2", "Today and tomorrow"]] as const;
 
-export default async function Shopping({ searchParams }: { searchParams: Promise<{ days?: string; view?: string }> }) {
+export default async function Shopping({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
   const [k, b, sp] = await Promise.all([loadKitchen(), loadBook(), searchParams]);
   const today = todayISO();
   const cats = b.categoryNames("Expense");
   const fallback = cats.includes("Staples") ? "Staples" : cats[0] ?? "";
   const head = <KitchenHead current="/shopping" title="Shopping list" sub="What the planned meals need, minus what's already in the pantry and fridge" />;
-  const views = (
-    <div className="seg" role="group" aria-label="View" style={{ maxWidth: 320, marginBottom: ".8rem" }}>
-      <Link href="/shopping" role="button" aria-pressed={sp.view !== "prices"}>List</Link>
-      <Link href="/shopping?view=prices" role="button" aria-pressed={sp.view === "prices"}>Prices</Link>
-    </div>
-  );
-  if (sp.view === "prices") return <>{head}{views}<Prices k={k} /></>;
 
   const days = ["2", "7", "14"].includes(sp.days ?? "") ? Number(sp.days) : 7;
   const end = addDays(today, days - 1);
@@ -59,8 +51,8 @@ export default async function Shopping({ searchParams }: { searchParams: Promise
   const extraCat = Object.fromEntries(items.map((it) => [it.id, (c => (c && cats.includes(c) ? c : fallback))(k.categoryOf.get(it.id))]));
   return (
     <>
-      {head}{views}
-      <div className="seg" role="group" aria-label="For" style={{ maxWidth: 520, marginBottom: "1rem" }}>
+      {head}
+      <div className="seg mb-4 max-w-lg" role="group" aria-label="For">
         {SCOPES.map(([d, label]) => <Link key={d} href={`/shopping?days=${d}`} role="button" aria-pressed={Number(d) === days}>{label}</Link>)}
       </div>
       {guards.map((g, i) => <Msg key={i} tone={g[0] as "warn"}>{g[1]}</Msg>)}
@@ -86,54 +78,5 @@ export default async function Shopping({ searchParams }: { searchParams: Promise
         </div>
       ) : null}
     </>
-  );
-}
-
-/** What things cost, and where it's cheaper: prices per bag, per kg, per crate, from saved trips. */
-function Prices({ k }: { k: Awaited<ReturnType<typeof loadKitchen>> }) {
-  if (!k.history.length) return <div className="card"><Empty>Prices show here after your first saved shopping trip.</Empty></div>;
-  const scaleOf = (ing: number, base: string): [number, string] => {
-    const pack = k.pack(ing);
-    if (pack && pack[2] === base && !isLoose(pack)) return [pack[1], pack[0]];
-    const usual = k.unitOf.get(ing) ?? base;
-    return [toBase(1, usual)[0], usual];
-  };
-  const groups = new Map<string, typeof k.history>();
-  for (const h of k.history) groups.set(`${h.ingredientId}|${h.unit}`, [...(groups.get(`${h.ingredientId}|${h.unit}`) ?? []), h]);
-  const table = [...groups].map(([key, g]) => {
-    const [ing, base] = [Number(key.split("|")[0]), key.split("|")[1]];
-    const [scale, per] = scaleOf(ing, base);
-    const last = g[g.length - 1].perUnit * scale;
-    const prev = g.length > 1 ? g[g.length - 2].perUnit * scale : null;
-    const shops = new Map<string, number[]>();
-    for (const h of g) if (h.shop) shops.set(h.shop, [...(shops.get(h.shop) ?? []), h.perUnit * scale]);
-    const avg = [...shops].map(([s, v]) => [s, v.reduce((a, x) => a + x, 0) / v.length] as const).sort((a, b) => a[1] - b[1]);
-    const change = prev ? ((last - prev) / prev) * 100 : null;
-    // the monthly average, for the chart
-    const months = new Map<string, number[]>();
-    for (const h of g) months.set(monthOf(h.date), [...(months.get(monthOf(h.date)) ?? []), h.perUnit * scale]);
-    return { name: k.names.get(ing) ?? "?", per, last, change, cheapest: avg.length > 1 ? `${avg[0][0]} (${money(avg[0][1])})` : "",
-      times: g.length, series: [...months].map(([m, v]) => [m, v.reduce((a, x) => a + x, 0) / v.length] as [string, number]) };
-  }).sort((a, b) => (a.name < b.name ? -1 : 1));
-  const trend = table.filter((t) => t.series.length >= 2).sort((a, b) => b.times - a.times)
-    .map((t) => ({ name: `${t.name} (per ${t.per})`, points: t.series }));
-  return (
-    <div className="stack">
-      <div className="card">
-        <Section title="What things cost" />
-        {trend.length ? <PriceChart series={trend} /> : <p className="caption">Price trends appear once you&apos;ve bought the same item in two different months.</p>}
-      </div>
-      <div className="card">
-        <div className="table-wrap"><table className="table">
-          <thead><tr><th>Item</th><th className="r">Last price</th><th className="r">Change</th><th>Cheapest at</th><th className="r">Times bought</th></tr></thead>
-          <tbody>{table.map((t) => (
-            <tr key={t.name + t.per}><td>{t.name}</td><td className="r num">{money(t.last)} / {t.per}</td>
-              <td className="r num">{t.change !== null && Math.abs(t.change) >= 1 ? `${t.change > 0 ? "+" : ""}${t.change.toFixed(0)}%` : ""}</td>
-              <td>{t.cheapest}</td><td className="r num">{t.times}</td></tr>
-          ))}</tbody>
-        </table></div>
-        <p className="caption">Change compares the last two trips. Cheapest at needs the same item bought at two or more places.</p>
-      </div>
-    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { SettingsHead } from "@/components/SettingsTabs";
 import { Empty, Section } from "@/components/ui";
+import { prisma } from "@/lib/db";
 import { loadBook } from "@/lib/load";
 import { money } from "@/lib/money";
 import { AccountForms } from "./AccountForms";
@@ -7,10 +8,19 @@ import { AccountForms } from "./AccountForms";
 export const metadata = { title: "Accounts" };
 
 export default async function Accounts() {
-  const b = await loadBook();
+  // how many entries and auto rules use each account, counted by the database
+  const [b, from, to, ruleFrom, ruleTo] = await Promise.all([loadBook(),
+    prisma.transaction.groupBy({ by: ["account"], _count: true }),
+    prisma.transaction.groupBy({ by: ["toAccount"], _count: true }),
+    prisma.recurringRule.groupBy({ by: ["account"], _count: true }),
+    prisma.recurringRule.groupBy({ by: ["toAccount"], _count: true })]);
   const bal = b.balances();
-  const used = (n: string) => b.tx.filter((t) => t.account === n || t.toAccount === n).length
-    + b.rules.filter((r) => r.account === n || r.toAccount === n).length;
+  const counts = new Map<string, number>();
+  for (const [name, c] of [...from.map((r) => [r.account, r._count] as const), ...to.map((r) => [r.toAccount, r._count] as const),
+    ...ruleFrom.map((r) => [r.account, r._count] as const), ...ruleTo.map((r) => [r.toAccount, r._count] as const)]) {
+    if (name) counts.set(name, (counts.get(name) ?? 0) + c);
+  }
+  const used = (n: string) => counts.get(n) ?? 0;
   return (
     <>
       <SettingsHead current="/settings/accounts" sub="Shape the app around how your family handles money" />

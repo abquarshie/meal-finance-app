@@ -3,7 +3,7 @@
 // Everything picked for one breakfast, lunch or supper is one meal.
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { addToPlan } from "@/actions/kitchen";
-import { addIdea, dishHint, planDefaults, type DishDefault } from "@/actions/plan-help";
+import { dishHint, planDefaults, type DishDefault } from "@/actions/plan-help";
 import { useToast } from "@/components/Toaster";
 import { Msg, Section } from "@/components/ui";
 import { addDays } from "@/lib/dates";
@@ -11,7 +11,6 @@ import { CURRENCY } from "@/lib/money";
 
 export type Option = { key: string; label: string; kind: "pairing" | "recipe" | "item"; bought?: boolean; countUnit?: string;
   units?: string[]; parts?: string[]; sides?: Record<string, { qty: number; unit: string }> };
-export type Idea = { recipeId: number; name: string; why: string };
 
 const ONE_OFF_UNITS = ["portion", "piece", "ball", "pack", "plate", "bowl", "loaf", "bottle", "sachet"];
 const SLOTS = ["Breakfast", "Lunch", "Supper"];
@@ -23,8 +22,8 @@ function dayLabel(d: string, today: string) {
   return `${WD[new Date(`${d}T00:00:00Z`).getUTCDay()]} ${d.slice(8)}`;
 }
 
-export function AddToPlan({ today, nextSlot, usual, mealPeople, options, ideas }: {
-  today: string; nextSlot: string; usual: Record<string, number>; mealPeople: Record<string, number>; options: Option[]; ideas: Idea[];
+export function AddToPlan({ today, nextSlot, usual, mealPeople, options }: {
+  today: string; nextSlot: string; usual: Record<string, number>; mealPeople: Record<string, number>; options: Option[];
 }) {
   const toast = useToast();
   const [busy, start] = useTransition();
@@ -198,22 +197,6 @@ export function AddToPlan({ today, nextSlot, usual, mealPeople, options, ideas }
           {n > 1 ? `Add ${n} to ${when}, ${slot.toLowerCase()}` : `Add to ${when}, ${slot.toLowerCase()}`}
         </button>
       </div>
-      {ideas.length ? (
-        <div className="card">
-          <Section title="Ideas to use things up" />
-          {ideas.map((i) => (
-            <div className="rule" key={i.recipeId}>
-              <div style={{ minWidth: 0 }}><div className="rule-name">{i.name}</div><div className="rule-meta">{i.why}</div></div>
-              <button type="button" className="btn small" disabled={busy} title={`Add to ${when}, ${slot.toLowerCase()}`}
-                onClick={() => start(async () => {
-                  const r = await addIdea(day, slot, i.recipeId);
-                  toast(r.ok ? r.message : r.error, r.ok ? undefined : { tone: "warn" });
-                })}>Add</button>
-            </div>
-          ))}
-          <p className="caption">Add puts it on {when}, {slot.toLowerCase()}: the day and meal picked above.</p>
-        </div>
-      ) : null}
     </div>
   );
 }
