@@ -10,7 +10,7 @@ import { previousMonth } from "@/lib/book";
 import { dayMonth, daysBetween, monthDays, monthName, monthOf, monthShort, today } from "@/lib/dates";
 import { loadBook, windowStart } from "@/lib/load";
 import { money } from "@/lib/money";
-import { bannerIsRed, bannerLabel, changeText, committedText } from "@/lib/words";
+import { changeText } from "@/lib/words";
 
 export const metadata = { title: "Home" };
 
@@ -22,7 +22,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   // an older month than the usual window is read on its own (with the month before, for the comparison)
   const b = `${period}-01` < windowStart(now) ? await loadBook(period) : base;
   const p = b.spendingPower(now);
-  const committed = committedText(p);
 
   // income and expenses, compared with last month (part-way through a month: the same days of last month)
   const [inc, exp] = b.monthTotals(period);
@@ -55,12 +54,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="stack">
-          <div className={`rounded-3xl p-5 text-white shadow-soft md:p-6 ${bannerIsRed(p) ? "bg-hero-over" : "bg-hero"}`} data-state={p.state}>
-            <div className="text-sm font-medium text-white/70">{bannerLabel(p, now)}</div>
-            <div className="num mt-1 text-4xl font-bold tracking-tight [overflow-wrap:anywhere] md:text-5xl">{money(p.left)}</div>
-            {committed ? <p className="mt-3 text-[13px] leading-snug text-white/70">{committed}</p> : null}
-          </div>
-
           <div className="grid grid-cols-2 gap-3">
             <Kpi label={`Income · ${monthShort(period)}`} value={money(inc)} foot={<Pill tone={incPill.tone}>{incPill.text}</Pill>} />
             <Kpi label={`Expenses · ${monthShort(period)}`} value={money(exp)} foot={<Pill tone={expPill.tone}>{expPill.text}</Pill>} />
