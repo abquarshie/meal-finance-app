@@ -1,6 +1,6 @@
-// Cashew's money tables, exactly as the Python app creates them (core/schema.py, ensure_schema).
-// Prisma only reads and writes rows here. The Python side still owns the table definitions, and the
-// kitchen tables live in the separate "meals" schema, which Prisma doesn't touch.
+// Cashew's tables, exactly as the Python app creates them (core/schema.py and meals/schema.py, ensure_schema).
+// Prisma only reads and writes rows here. The Python side still owns the table definitions: the money tables
+// in "public" and the kitchen tables in the separate "meals" schema.
 //
 // Never run `prisma migrate` or `prisma db push` against Cashew's database: they would try to make the
 // database match this file, and this file doesn't describe the kitchen or the CHECK constraints.
@@ -12,6 +12,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["public", "meals"]
 }
 
 model Transaction {
@@ -30,6 +31,7 @@ model Transaction {
   @@index([date(sort: Desc), id(sort: Desc)], map: "transactions_date_idx")
   @@index([category, amount], map: "transactions_cat_amount_idx")
   @@map("transactions")
+  @@schema("public")
 }
 
 model Budget {
@@ -37,6 +39,7 @@ model Budget {
   monthlyLimit Decimal @map("monthly_limit") @db.Decimal(10, 2)
 
   @@map("budgets")
+  @@schema("public")
 }
 
 model Goal {
@@ -47,6 +50,7 @@ model Goal {
   contributions GoalContribution[]
 
   @@map("goals")
+  @@schema("public")
 }
 
 model GoalContribution {
@@ -60,6 +64,7 @@ model GoalContribution {
 
   @@index([goalId], map: "goal_contributions_goal_idx")
   @@map("goal_contributions")
+  @@schema("public")
 }
 
 model Category {
@@ -69,6 +74,7 @@ model Category {
   kind      String @db.VarChar(10)
 
   @@map("categories")
+  @@schema("public")
 }
 
 model Account {
@@ -78,6 +84,7 @@ model Account {
   spendable      Boolean? @default(true) // "everyday money"; savings accounts are false
 
   @@map("accounts")
+  @@schema("public")
 }
 
 model RecurringRule {
@@ -100,6 +107,7 @@ model RecurringRule {
   lastRun   DateTime? @map("last_run") @db.Date
 
   @@map("recurring_rules")
+  @@schema("public")
 }
 
 model AppMeta {
@@ -107,6 +115,7 @@ model AppMeta {
   value String?
 
   @@map("app_meta")
+  @@schema("public")
 }
 
 model User {
@@ -122,6 +131,7 @@ model User {
   sessions     Session[]
 
   @@map("users")
+  @@schema("public")
 }
 
 model Session {
@@ -133,4 +143,228 @@ model Session {
 
   @@index([userId], map: "sessions_user_idx")
   @@map("sessions")
+  @@schema("public")
+}
+
+// ---- the kitchen (schema "meals"). Quantities are stored in base units: g, ml, or a count word (pcs, bunch…) ----
+
+model Ingredient {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(60)
+  unit       String   @default("pcs") @db.VarChar(12) // the unit it's counted and used in
+  category   String?  @db.VarChar(50) // the money category its cost is logged under
+  lowLevel   Decimal? @map("low_level") @db.Decimal(12, 3) // warn when stock is down to this (base unit)
+  packName   String?  @map("pack_name") @db.VarChar(12) // crate, bag, tin…
+  packSize   Decimal? @map("pack_size") @db.Decimal(12, 3) // in the base unit
+  kind       String   @default("food") @db.VarChar(10) // food, or household for supplies
+  loose      Boolean  @default(false) // bought by the piece too, like onions
+  altUnits   Json?    @map("alt_units") // other units: {"container": 400}, in base units
+  section    String?  @db.VarChar(40) // the shelf in the catalog
+
+  recipeItems  RecipeItem[]
+  planEntries  PlanEntry[]
+  pantry       PantryStock[]
+  prices       PriceKnown[]
+  tripItems    TripItem[]
+  pairingItems PairingItem[]
+
+  @@map("ingredients")
+  @@schema("meals")
+}
+
+model Recipe {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(80)
+  portions   Decimal  @default(4) @db.Decimal(8, 2) // one batch
+  keepsDays  Int      @default(3) @map("keeps_days")
+  prepNote   String?  @map("prep_note")
+  prepHours  Int?     @map("prep_hours")
+  method     String?
+  bought     Boolean  @default(false) // bought ready-made (kenkey, waakye…)
+  price      Decimal? @db.Decimal(12, 2) // usual price for one unit, for bought food
+  countUnit  String?  @map("count_unit") @db.VarChar(12)
+  shop       String?  @db.VarChar(60)
+  category   String?  @db.VarChar(50)
+  role       String   @default("main") @db.VarChar(10) // starch, soup, stew, sauce, side or main
+
+  items        RecipeItem[]
+  planEntries  PlanEntry[]
+  fridge       FridgeBatch[]
+  waste        Waste[]
+  boughtRows   BoughtFood[]
+  pairingItems PairingItem[]
+
+  @@map("recipes")
+  @@schema("meals")
+}
+
+model RecipeItem {
+  id           Int        @id @default(autoincrement())
+  recipeId     Int        @map("recipe_id")
+  ingredientId Int        @map("ingredient_id")
+  qty          Decimal    @db.Decimal(12, 3)
+  unit         String     @db.VarChar(12)
+  recipe       Recipe     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@index([recipeId], map: "recipe_items_recipe_idx")
+  @@map("recipe_items")
+  @@schema("meals")
+}
+
+model PlanEntry {
+  id           Int         @id @default(autoincrement())
+  day          DateTime    @db.Date
+  slot         String      @db.VarChar(10) // Breakfast, Lunch or Supper
+  recipeId     Int?        @map("recipe_id")
+  ingredientId Int?        @map("ingredient_id") // a plain item like bananas
+  qty          Decimal     @db.Decimal(12, 3) // portions to cook, or how much of the plain item
+  unit         String?     @db.VarChar(12)
+  status       String      @default("planned") @db.VarChar(12) // planned, cooked, from_fridge, done, bought
+  doneAt       DateTime?   @map("done_at") @db.Timestamptz(6)
+  doneBy       String?     @map("done_by") @db.VarChar(30)
+  undo         Json? // what ticking changed, so unticking can put it back
+  label        String?     @db.VarChar(80) // a one-off bought item
+  price        Decimal?    @db.Decimal(12, 2)
+  people       Decimal?    @db.Decimal(5, 1) // when it isn't the usual number for that meal
+  recipe       Recipe?     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+  fridge       FridgeBatch[]
+  boughtRows   BoughtFood[]
+
+  @@index([day], map: "plan_day_idx")
+  @@index([day, slot], map: "plan_day_slot_idx")
+  @@index([recipeId], map: "plan_recipe_idx")
+  @@map("plan")
+  @@schema("meals")
+}
+
+model FridgeBatch {
+  id        Int        @id @default(autoincrement())
+  recipeId  Int?       @map("recipe_id")
+  label     String     @db.VarChar(80)
+  portions  Decimal    @db.Decimal(8, 2) // still left
+  cookedOn  DateTime   @map("cooked_on") @db.Date
+  eatBy     DateTime   @map("eat_by") @db.Date
+  planId    Int?       @map("plan_id") // the cooking that made it
+  createdBy String?    @map("created_by") @db.VarChar(30)
+  unit      String     @default("portion") @db.VarChar(12)
+  recipe    Recipe?    @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  plan      PlanEntry? @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([recipeId], map: "fridge_recipe_idx")
+  @@map("fridge")
+  @@schema("meals")
+}
+
+model PantryStock {
+  ingredientId Int        @map("ingredient_id")
+  unit         String     @db.VarChar(12) // base unit
+  qty          Decimal    @default(0) @db.Decimal(12, 3)
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@id([ingredientId, unit])
+  @@map("pantry")
+  @@schema("meals")
+}
+
+model PriceKnown {
+  ingredientId Int        @map("ingredient_id")
+  unit         String     @db.VarChar(12) // base unit
+  perUnit      Decimal    @map("per_unit") @db.Decimal(12, 5) // last price paid per base unit
+  updatedAt    DateTime   @default(now()) @map("updated_at") @db.Timestamptz(6)
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@id([ingredientId, unit])
+  @@map("prices")
+  @@schema("meals")
+}
+
+model Trip {
+  id        Int        @id @default(autoincrement())
+  date      DateTime   @db.Date
+  account   String     @db.VarChar(50)
+  total     Decimal    @db.Decimal(12, 2)
+  createdBy String?    @map("created_by") @db.VarChar(30)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  shop      String?    @db.VarChar(60)
+  items     TripItem[]
+
+  @@map("trips")
+  @@schema("meals")
+}
+
+model TripItem {
+  id           Int         @id @default(autoincrement())
+  tripId       Int         @map("trip_id")
+  ingredientId Int?        @map("ingredient_id")
+  name         String      @db.VarChar(60)
+  qty          Decimal     @db.Decimal(12, 3) // base unit
+  unit         String      @db.VarChar(12)
+  price        Decimal     @db.Decimal(12, 2)
+  category     String      @db.VarChar(50)
+  trip         Trip        @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: SetNull)
+
+  @@index([tripId], map: "trip_items_trip_idx")
+  @@map("trip_items")
+  @@schema("meals")
+}
+
+model Waste {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @db.Date
+  label     String   @db.VarChar(80)
+  amount    Decimal  @db.Decimal(8, 2) // portions (or other leftover units) thrown away
+  unit      String   @default("portion") @db.VarChar(12)
+  value     Decimal? @db.Decimal(12, 2) // estimated cost
+  recipeId  Int?     @map("recipe_id")
+  createdBy String?  @map("created_by") @db.VarChar(30)
+  recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@map("waste")
+  @@schema("meals")
+}
+
+model BoughtFood {
+  id       Int        @id @default(autoincrement())
+  date     DateTime   @db.Date
+  planId   Int?       @map("plan_id")
+  recipeId Int?       @map("recipe_id")
+  label    String     @db.VarChar(80)
+  qty      Decimal    @db.Decimal(12, 3)
+  unit     String     @db.VarChar(12)
+  paid     Decimal    @db.Decimal(12, 2)
+  shop     String?    @db.VarChar(60)
+  plan     PlanEntry? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  recipe   Recipe?    @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+
+  @@map("bought")
+  @@schema("meals")
+}
+
+model Pairing {
+  id    Int           @id @default(autoincrement())
+  name  String        @unique @db.VarChar(120)
+  items PairingItem[]
+
+  @@map("pairings")
+  @@schema("meals")
+}
+
+model PairingItem {
+  id           Int         @id @default(autoincrement())
+  pairingId    Int         @map("pairing_id")
+  recipeId     Int?        @map("recipe_id")
+  ingredientId Int?        @map("ingredient_id") // a side like gari
+  qty          Decimal?    @db.Decimal(12, 3) // for a side: how much per person
+  unit         String?     @db.VarChar(12)
+  pairing      Pairing     @relation(fields: [pairingId], references: [id], onDelete: Cascade)
+  recipe       Recipe?     @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient? @relation(fields: [ingredientId], references: [id], onDelete: Cascade)
+
+  @@index([pairingId], map: "pairing_items_pairing_idx")
+  @@map("pairing_items")
+  @@schema("meals")
 }
