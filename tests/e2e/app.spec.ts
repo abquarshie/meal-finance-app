@@ -1,0 +1,235 @@
+// The whole money side on a phone, in order: the first person sets Cashew up, then everyday use.
+// The database starts as tests/e2e/setup.sh leaves it: Python's tables and sample entries, and one person ("ama",
+// created by the Python app with the password "Kenkey and fish").
+import { expect, test, type Page } from "@playwright/test";
+
+test.describe.configure({ mode: "serial" });
+
+async function signIn(page: Page, user = "ama", password = "Kenkey and fish") {
+  await page.goto("/login");
+  await page.getByLabel("Username").fill(user);
+  await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.getByRole("heading", { name: /Hello,/ })).toBeVisible();
+}
+
+const toast = (page: Page) => page.locator(".toast").last();
+
+test("signed out, every page leads to sign-in and back", async ({ page }) => {
+  await page.goto("/budgets");
+  await expect(page).toHaveURL(/\/login\?next=%2Fbudgets/);
+  await page.getByLabel("Username").fill("ama");
+  await page.getByLabel("Password").fill("wrong password");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".note.error")).toHaveText("Wrong username or password. 4 tries left before a short lock.");
+  await page.getByLabel("Password").fill("Kenkey and fish");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/budgets$/);
+});
+
+test("Home: the banner, balances and this month", async ({ page }) => {
+  await signIn(page);
+  const hero = page.locator(".hero");
+  await expect(hero).toHaveAttribute("data-state", /.+/);
+  await expect(hero.locator(".hero-value")).toHaveText(/^−?GH₵[\d,]+\.\d\d$/);
+  await page.getByText("Account balances").click();
+  await expect(page.locator(".bal-savings")).toContainText("Susu");
+  await expect(page.locator(".bal-rows").first()).not.toContainText("Susu");
+  await expect(page.getByText("Income", { exact: true })).toBeVisible();
+  await page.screenshot({ path: "test-results/home-phone.png", fullPage: true });
+});
+
+test("add an expense, then the double-entry check", async ({ page }) => {
+  await signIn(page);
+  await page.getByRole("button", { name: "Add an entry" }).first().click();
+  const sheet = page.getByRole("dialog", { name: "Add an entry" });
+  await sheet.getByLabel(/Amount/).fill("37.50");
+  await sheet.getByRole("group", { name: "Category" }).getByRole("button").first().click();
+  const category = await sheet.getByRole("group", { name: "Category" }).locator('[aria-pressed="true"]').innerText();
+  await sheet.getByRole("group", { name: "Account" }).getByRole("button", { name: "Cash" }).click();
+  await page.screenshot({ path: "test-results/add-entry-phone.png" });
+  await sheet.getByRole("button", { name: "Save expense" }).click();
+  await expect(page.getByText(`Saved GH₵37.50 expense to ${category}`)).toBeVisible();
+  await expect(sheet).toBeHidden();
+
+  // the same again is caught
+  await page.locator(".fab").click();
+  await sheet.getByLabel(/Amount/).fill("37.50");
+  await sheet.getByRole("group", { name: "Category" }).getByRole("button", { name: category, exact: true }).click();
+  await sheet.getByRole("button", { name: "Save expense" }).click();
+  await expect(sheet.getByText(/You already added GH₵37\.50 for .* today at \d\d:\d\d\. Save another one\?/)).toBeVisible();
+  await sheet.getByRole("button", { name: "Don't save" }).click();
+  await expect(sheet.getByRole("button", { name: "Save expense" })).toBeVisible();
+});
+
+test("a pasted MoMo text fills the form in", async ({ page }) => {
+  await signIn(page);
+  await page.locator(".fab").click();
+  const sheet = page.getByRole("dialog", { name: "Add an entry" });
+  await sheet.getByText("Paste a MoMo text").click();
+  await sheet.getByLabel("MoMo text").fill("Payment made for GHS 50.00 to KOFI MENSAH. Current Balance: GHS 120.50. "
+    + "Reference: lunch. Transaction ID: 51234567890. Fee charged: GHS 0.50 TAX charged: GHS 0.00.");
+  await sheet.getByRole("button", { name: "Fill in the form" }).click();
+  await expect(sheet.getByText("Paid GH₵50.00 to Kofi Mensah, fee GH₵0.50. Check the details, then save.")).toBeVisible();
+  await expect(sheet.getByLabel(/Amount/)).toHaveValue("50");
+  await expect(sheet.getByRole("group", { name: "Account" }).locator('[aria-pressed="true"]')).toHaveText("MoMo");
+  await sheet.getByRole("button", { name: "Save expense" }).click();
+  await expect(page.getByText(/Saved GH₵50\.00 expense to .* plus GH₵0\.50 fee/)).toBeVisible();
+  // pasting it again is recognised by its transaction ID
+  await page.locator(".fab").click();
+  await sheet.getByText("Paste a MoMo text").click();
+  await sheet.getByLabel("MoMo text").fill("Payment made for GHS 50.00 to KOFI MENSAH. Transaction ID: 51234567890.");
+  await sheet.getByRole("button", { name: "Fill in the form" }).click();
+  await sheet.getByRole("button", { name: "Save expense" }).click();
+  await expect(sheet.getByText(/This MoMo payment is already saved \(You added it/)).toBeVisible();
+});
+
+test("transactions: change one, delete it, undo", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/transactions");
+  await page.getByLabel("Search").fill("Kofi Mensah");
+  await expect(page.locator(".pills")).toContainText("1 entry");
+  await page.locator("button.feed-row").first().click();
+  const sheet = page.getByRole("dialog", { name: "Change an entry" });
+  await sheet.getByLabel(/Amount/).fill("55");
+  await sheet.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Saved the change")).toBeVisible();
+  await expect(page.locator(".feed").first()).toContainText("−GH₵55.00");
+
+  await page.locator("button.feed-row").first().click();
+  await sheet.getByRole("button", { name: "Delete" }).click();
+  await page.getByRole("dialog", { name: "Please confirm" }).getByRole("button", { name: "Delete" }).click();
+  await expect(toast(page)).toContainText("Deleted 1 transaction.");
+  await expect(page.getByText("Nothing matches these filters.")).toBeVisible();
+  await toast(page).getByRole("button", { name: "Undo" }).click();
+  await expect(page.getByText("Restored 1 transaction")).toBeVisible();
+  await expect(page.locator(".feed").first()).toContainText("−GH₵55.00");
+  await page.screenshot({ path: "test-results/transactions-phone.png", fullPage: true });
+});
+
+test("repeats: a rule that started last month adds its entries straight away", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/repeats");
+  const form = page.locator(".card", { has: page.getByRole("heading", { name: "New auto transaction" }) });
+  await form.getByRole("group", { name: "Type" }).getByRole("button", { name: "Expense" }).click();
+  await form.getByLabel("Name").fill("Test gym");
+  await form.getByLabel(/Amount/).fill("80");
+  await form.getByLabel("Repeats").selectOption("Weekly");
+  const start = new Date(Date.now() - 15 * 86_400_000).toISOString().slice(0, 10);
+  await form.getByLabel("First run").fill(start);
+  await expect(form.getByText("This start date is in the past, so 3 entries will be added straight away.")).toBeVisible();
+  await page.getByRole("button", { name: "Create auto transaction" }).click();
+  await expect(page.getByText("Created 'Test gym'")).toBeVisible();
+  await expect(page.locator(".rule", { hasText: "Test gym" })).toContainText("Active");
+  await page.goto("/transactions?q=Test%20gym&month=all");
+  await expect(page.locator(".pills")).toContainText("3 entries");
+
+  await page.goto("/repeats");
+  await page.getByLabel("Auto transaction").selectOption({ label: "Test gym" });
+  await page.getByRole("button", { name: "Pause" }).click();
+  await expect(page.getByText("Paused 'Test gym'")).toBeVisible();
+  await expect(page.locator(".rule", { hasText: "Test gym" })).toContainText("Paused");
+  await page.getByRole("button", { name: "Resume" }).click();
+  await expect(page.locator(".rule", { hasText: "Test gym" })).toContainText("Active");
+});
+
+test("budgets and goals", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/budgets");
+  await page.getByLabel("Budget for").selectOption({ label: "Transportation (whole group)" });
+  await page.getByLabel(/Monthly limit/).fill("400");
+  await page.getByRole("button", { name: "Save budget" }).click();
+  await expect(page.getByText("Budget for Transportation set to GH₵400.00 a month")).toBeVisible();
+  await expect(page.locator(".prog-name", { hasText: "Transportation" })).toBeVisible();
+
+  await page.goto("/goals");
+  await page.getByRole("combobox", { name: "Goal", exact: true }).selectOption({ label: "School fees" });
+  await page.getByLabel(/Amount/).fill("100");
+  await page.getByRole("button", { name: "Add to goal" }).click();
+  await expect(page.getByText("Added GH₵100.00 to School fees")).toBeVisible();
+  await expect(page.getByRole("progressbar", { name: "School fees" })).toBeVisible();
+});
+
+test("settings: renaming an account renames it everywhere", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/settings/accounts");
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByLabel("Account").selectOption("Flip");
+  await page.getByLabel("Name").fill("Flip Wallet");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Saved 'Flip Wallet'")).toBeVisible();
+  await expect(page.locator("table")).toContainText("Flip Wallet");
+  await page.goto("/repeats");
+  await expect(page.locator(".rule", { hasText: "Move to Flip" })).toContainText("GCB to Flip Wallet");
+});
+
+test("settings: a category still in use can only go once its uses have somewhere to go", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/settings/categories");
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByLabel("Category name").fill("Food");
+  await expect(page.getByText("'Food' is the name of a group, so a budget couldn't tell them apart. Pick another name.")).toBeVisible();
+  await page.getByLabel("Category name").fill("School fees");
+  await page.getByLabel("Group").selectOption("New group…");
+  await page.getByLabel("New group name").fill("School");
+  await page.getByRole("button", { name: "Add category" }).click();
+  await expect(page.getByText("Added 'School fees' to School")).toBeVisible();
+
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByLabel("Category").selectOption({ label: "Utility › Internet Data" });
+  await expect(page.getByText(/Internet Data is still used by 1 auto transactions/)).toBeVisible();
+  const del = page.getByRole("button", { name: "Delete category" });
+  await expect(del).toBeDisabled();
+  await page.getByLabel("Move them to").selectOption({ label: "Utility › Telephone calls credit" });
+  await del.click();
+  await page.getByRole("dialog", { name: "Please confirm" }).getByRole("button", { name: "Delete" }).click();
+  await expect(page.getByText("Deleted 'Internet Data'")).toBeVisible();
+  await page.goto("/repeats");
+  await expect(page.locator(".rule", { hasText: "Data bundle" })).toContainText("Telephone calls credit");
+});
+
+test("people: an invite code lets the family join", async ({ page, browser }) => {
+  await signIn(page);
+  await page.goto("/settings/people");
+  const code = (await page.locator("code").innerText()).trim();
+  expect(code).toMatch(/^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
+
+  const other = await browser.newContext({ viewport: { width: 390, height: 800 } });
+  const p2 = await other.newPage();
+  await p2.goto("/login");
+  await p2.getByRole("button", { name: "I have an invite code" }).click();
+  await p2.getByLabel("Your name").fill("Kofi");
+  await p2.getByLabel("Username").fill("kofi");
+  await p2.getByLabel("Password", { exact: true }).fill("Plantain-Chips-26");
+  await p2.getByLabel("Type the password again").fill("Plantain-Chips-26");
+  await p2.getByLabel("Invite code").fill("0000-0000-0000");
+  await p2.getByRole("button", { name: "Create account" }).click();
+  await expect(p2.locator(".note.error")).toContainText("That invite code isn't right.");
+  await p2.getByLabel("Invite code").fill(code.toLowerCase());
+  await p2.getByRole("button", { name: "Create account" }).click();
+  await expect(p2.getByRole("heading", { name: "Hello, Kofi" })).toBeVisible();
+  await p2.goto("/settings/people");
+  await expect(p2.getByText("To invite someone or reset a password, ask the account owner.")).toBeVisible();
+
+  // the owner resets Kofi's password: his browser is signed out
+  await page.reload();
+  await page.getByLabel("Person").selectOption({ label: "Kofi (@kofi)" });
+  await page.getByLabel("New password for Kofi").fill("New-Plantain-26");
+  await page.getByRole("button", { name: "Set password" }).click();
+  await expect(page.getByText("New password set for Kofi. Tell them in person or by phone.")).toBeVisible();
+  await p2.goto("/");
+  await expect(p2).toHaveURL(/\/login/);
+  await other.close();
+});
+
+test("signing out ends the session", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/settings/people");
+  const cookies = await page.context().cookies();
+  expect(cookies.find((c) => c.name === "cashew_session")?.httpOnly).toBe(true);
+  await page.setViewportSize({ width: 1200, height: 800 });
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/login/);
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/login/);
+});
