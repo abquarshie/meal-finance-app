@@ -3,11 +3,12 @@ import { AddEntryButton } from "@/components/AddEntry";
 import { BudgetList } from "@/components/Budgets";
 import { activity, Feed } from "@/components/Feed";
 import { TodayMeals } from "@/components/kitchen/TodayMeals";
+import { Icon } from "@/components/icons";
 import { MonthSelect } from "@/components/MonthSelect";
-import { Empty, Kpi, Pill } from "@/components/ui";
+import { Empty, Kpi, Msg, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { previousMonth } from "@/lib/book";
-import { monthDays, monthName, monthOf, monthShort, today } from "@/lib/dates";
+import { dayMonth, daysBetween, monthDays, monthName, monthOf, monthShort, today } from "@/lib/dates";
 import { loadBook, windowStart } from "@/lib/load";
 import { money } from "@/lib/money";
 import { changeText } from "@/lib/words";
@@ -34,6 +35,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   const total = b.budgetTotal(period);
   const net = inc - exp;
 
+  const balances = [...b.balances()];
+  const everyday = new Set(b.everydayAccounts);
+  const next = b.nextAuto();
   const status = b.budgetStatus(period);
   const over = status.filter((s) => s.spent > s.limit).length;
   const items = activity(b, 6);
@@ -57,6 +61,24 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
             <Kpi label="Budget left" value={total ? money(total.left) : "—"} tone={total && total.left < 0 ? "out" : undefined}
               foot={total ? `${money(total.spent)} of ${money(total.limit)}` : <Link href="/budgets">Set a budget</Link>} />
           </div>
+
+          <details className="card">
+            <summary className="[&_svg]:size-5 [&_svg]:text-muted"><Icon name="wallet" /> Account balances</summary>
+            {balances.length ? (
+              <div className="grid gap-x-6 sm:grid-cols-2">
+                {balances.map(([n, v]) => (
+                  <div className="flex justify-between gap-3 border-b border-line py-2 text-sm" key={n}>
+                    <span className="truncate text-muted">{n}{everyday.has(n) ? null : <i className="tag">savings</i>}</span>
+                    <b className={`tabular-nums${v < 0 ? " text-out" : ""}`}>{money(v)}</b>
+                  </div>
+                ))}
+              </div>
+            ) : <Empty>No accounts yet. <Link href="/settings">Add one in Settings</Link></Empty>}
+            {next ? <p className="caption mb-0">Next auto entry: {next.name}, {money(next.amount)}, {
+              daysBetween(now, next.nextDate) <= 0 ? "today" : daysBetween(now, next.nextDate) === 1 ? "tomorrow" : dayMonth(next.nextDate)}.</p> : null}
+            {b.unassigned ? <Msg tone="warn">{b.unassigned} older entr{b.unassigned === 1 ? "y has" : "ies have"} no account, so balances
+              may be off. Fix this in Settings → Accounts.</Msg> : null}
+          </details>
 
           {b.accountNames.length ? <AddEntryButton /> : (
             <div className="note">Add an account first in <Link href="/settings">Settings → Accounts</Link>.</div>
