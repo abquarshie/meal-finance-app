@@ -50,6 +50,12 @@
   a { @apply text-brand-ink; }
   button, input, select, textarea { font: inherit; color: inherit; }
   h1, h2, h3 { @apply tracking-tight; }
+  /* a clear ring for keyboard users only; taps and clicks don't show it */
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand; }
+  .input:focus-visible { outline: none; }
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+  }
 }
 
 @layer components {
@@ -144,6 +150,7 @@
   .check input { @apply size-[18px] accent-brand; }
 
   .btn { @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink no-underline transition-colors hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn:not(:disabled):active { transform: translateY(1px); }
   .btn.primary { @apply border-brand bg-brand text-on-brand shadow-sm hover:brightness-105; }
   .btn.danger { @apply text-out; }
   .btn.ghost { @apply border-transparent bg-transparent px-2 text-brand-ink shadow-none; }
@@ -175,6 +182,9 @@
   .toast { @apply pointer-events-auto flex items-center gap-3 rounded-2xl bg-ink px-4 py-3 text-sm font-semibold text-bg shadow-lift; animation: toast-in .18s ease-out; }
   .toast.warn { @apply bg-amber-800 text-white; }
   .toast button { @apply ml-auto cursor-pointer border-0 bg-transparent font-bold text-inherit underline; }
+
+  /* ---- loading placeholders ---- */
+  .skeleton { @apply rounded-lg bg-subtle; animation: pulse-soft 1.4s ease-in-out infinite; }
 
   /* ---- tables ---- */
   .table-wrap { @apply -mx-1 overflow-x-auto; }
@@ -216,4 +226,5 @@
   .recipe-line { @apply grid grid-cols-[minmax(0,1fr)_4.5rem_5rem_auto] items-center gap-1.5 min-[421px]:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]; }
 }
 
+@keyframes pulse-soft { 50% { opacity: .55; } }
 @keyframes toast-in { from { opacity: 0; transform: translateY(-6px); } }

@@ -1,5 +1,5 @@
 "use server";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { z } from "zod";
 import { attempt, fail, ok, type Result } from "@/lib/action";
 import * as auth from "@/lib/auth";
@@ -9,24 +9,39 @@ import { Refusal } from "@/lib/passwords";
 // ---- signing in and out ----------------------------------------------------------------------------------------
 export type AuthState = { error?: string } | undefined;
 
+/** Signing in must never show a crash page: a database problem becomes a message on the form. */
+async function guarded(work: () => Promise<AuthState>): Promise<AuthState> {
+  try {
+    return await work();
+  } catch (e) {
+    unstable_rethrow(e); // signed in: let it redirect
+    console.error(e);
+    return { error: "Couldn't reach the database just now. Please try again in a moment." };
+  }
+}
+
 export async function signInAction(_: AuthState, form: FormData): Promise<AuthState> {
-  const username = String(form.get("username") ?? "");
-  const password = String(form.get("password") ?? "");
-  if (!username.trim() || !password) return { error: "Enter your username and password." };
-  const { user, error } = await auth.signIn(username, password);
-  if (!user) return { error };
-  await auth.startSession(user.id, form.get("remember") === "on");
-  redirect(safeNext(form.get("next")));
+  return guarded(async () => {
+    const username = String(form.get("username") ?? "");
+    const password = String(form.get("password") ?? "");
+    if (!username.trim() || !password) return { error: "Enter your username and password." };
+    const { user, error } = await auth.signIn(username, password);
+    if (!user) return { error };
+    await auth.startSession(user.id, form.get("remember") === "on");
+    redirect(safeNext(form.get("next")));
+  });
 }
 
 export async function registerAction(_: AuthState, form: FormData): Promise<AuthState> {
-  const password = String(form.get("password") ?? "");
-  if (password !== String(form.get("password2") ?? "")) return { error: "The two passwords don't match." };
-  const { user, error } = await auth.register(String(form.get("username") ?? ""), String(form.get("name") ?? ""),
-    password, String(form.get("code") ?? "") || undefined);
-  if (!user) return { error };
-  await auth.startSession(user.id, form.get("remember") === "on");
-  redirect("/");
+  return guarded(async () => {
+    const password = String(form.get("password") ?? "");
+    if (password !== String(form.get("password2") ?? "")) return { error: "The two passwords don't match." };
+    const { user, error } = await auth.register(String(form.get("username") ?? ""), String(form.get("name") ?? ""),
+      password, String(form.get("code") ?? "") || undefined);
+    if (!user) return { error };
+    await auth.startSession(user.id, form.get("remember") === "on");
+    redirect("/");
+  });
 }
 
 export async function signOutAction(): Promise<void> {

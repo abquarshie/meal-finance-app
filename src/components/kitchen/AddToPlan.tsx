@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { addToPlan } from "@/actions/kitchen";
 import { dishHint, planDefaults, type DishDefault } from "@/actions/plan-help";
+import { quiet, safe } from "@/components/safe";
 import { useToast } from "@/components/Toaster";
 import { Msg, Section } from "@/components/ui";
 import { addDays } from "@/lib/dates";
@@ -62,7 +63,7 @@ export function AddToPlan({ today, nextSlot, usual, mealPeople, options }: {
     lastSig.current = sig;
     if (!expanded.length) { setMealName({ name: "", joins: false }); return; }
     const t = setTimeout(async () => {
-      const r = await planDefaults(day, slot, p, expanded, sides);
+      const r = await quiet(() => planDefaults(day, slot, p, expanded, sides), { lines: {}, mealName: "", joins: false });
       setDefaults(r.lines);
       setMealName({ name: r.mealName, joins: r.joins });
       setHints({});
@@ -86,7 +87,7 @@ export function AddToPlan({ today, nextSlot, usual, mealPeople, options }: {
     const o = byKey.get(key);
     if (o?.kind !== "recipe" || o.bought || !(Number(v) > 0)) return;
     const [, raw] = key.split(":");
-    dishHint(day, slot, p, Number(raw), Number(v)).then((h) => setHints((x) => ({ ...x, [key]: h })));
+    quiet(() => dishHint(day, slot, p, Number(raw), Number(v)), "").then((h) => setHints((x) => ({ ...x, [key]: h })));
   }
 
   function add() {
@@ -101,7 +102,7 @@ export function AddToPlan({ today, nextSlot, usual, mealPeople, options }: {
         price: oneOff.price ? Number(oneOff.price) : null, people: own } as never);
     }
     start(async () => {
-      const r = await addToPlan(entries, mealName.joins && Math.abs(p - nowSet) > 1e-9 ? { day, slot, people: own } : undefined);
+      const r = await safe(() => addToPlan(entries, mealName.joins && Math.abs(p - nowSet) > 1e-9 ? { day, slot, people: own } : undefined));
       if (!r.ok) return toast(r.error, { tone: "warn" });
       toast(r.message);
       setPicked([]); setQty({}); setUnit({}); setDefaults({}); setHints({}); setOnce(false);

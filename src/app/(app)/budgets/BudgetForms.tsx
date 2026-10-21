@@ -1,6 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { removeBudget, setBudget } from "@/actions/plan";
+import { safe } from "@/components/safe";
 import { Confirm } from "@/components/Sheet";
 import { useToast } from "@/components/Toaster";
 import { Msg, Section } from "@/components/ui";
@@ -27,7 +28,7 @@ export function BudgetForms({ targets, current, spent, month }: {
   const after = (r: { ok: boolean; message?: string; error?: string }) => toast(r.ok ? r.message! : r.error!, r.ok ? undefined : { tone: "warn" });
   return (
     <div className="stack">
-      <form className="card form" onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await setBudget(key, l); after(r); if (r.ok) setLimit(""); }); }}>
+      <form className="card form" onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await safe(() => setBudget(key, l)); after(r); if (r.ok) setLimit(""); }); }}>
         <Section title="Set a budget" />
         <label className="field"><span>Budget for</span>
           <select className="input" value={key} onChange={(e) => setKey(e.target.value)}>
@@ -52,7 +53,7 @@ export function BudgetForms({ targets, current, spent, month }: {
           <div><button type="button" className="btn danger" onClick={() => setAsking(true)}>Remove</button></div>
           <Confirm open={asking} busy={busy} button="Remove" onCancel={() => setAsking(false)}
             message={`Remove the budget for ${remove}? Your spending records aren't affected.`}
-            onConfirm={() => start(async () => { after(await removeBudget(remove)); setAsking(false); })} />
+            onConfirm={() => start(async () => { after(await safe(() => removeBudget(remove))); setAsking(false); })} />
         </div>
       ) : null}
     </div>

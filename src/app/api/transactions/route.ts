@@ -5,10 +5,16 @@ import { readBook } from "@/lib/load";
 
 /** The entries on screen as a CSV file that opens in Excel or Google Sheets. */
 export async function GET(req: Request) {
-  if (!(await getUser())) return new Response("Sign in first.", { status: 401 });
-  const b = await readBook();
-  const sp = Object.fromEntries(new URL(req.url).searchParams);
-  const { rows } = await findTransactions(b, readFilter(b, sp));
+  let rows: Awaited<ReturnType<typeof findTransactions>>["rows"];
+  try {
+    if (!(await getUser())) return new Response("Sign in first.", { status: 401 });
+    const b = await readBook();
+    const sp = Object.fromEntries(new URL(req.url).searchParams);
+    ({ rows } = await findTransactions(b, readFilter(b, sp)));
+  } catch (e) {
+    console.error(e);
+    return new Response("Couldn't read the transactions just now. Please try again.", { status: 503 });
+  }
   const cols = ["id", "date", "type", "group", "category", "account", "to_account", "member", "amount", "note"] as const;
   const cell = (v: unknown) => {
     let s = String(v ?? "");

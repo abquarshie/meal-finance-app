@@ -2,6 +2,7 @@
 // Market mode: big tick boxes, one item at a time. Tick what you bought, say what you paid, save the trip.
 import { useState, useTransition } from "react";
 import { saveTrip } from "@/actions/kitchen";
+import { safe } from "@/components/safe";
 import { useToast } from "@/components/Toaster";
 import { Empty, Msg, Section } from "@/components/ui";
 import { CURRENCY, money } from "@/lib/money";
@@ -47,8 +48,8 @@ export function ShoppingList({ rows: planned, categories, accounts, account: fir
   function save() {
     start(async () => {
       // amounts are in the unit shown; the server turns them into base units with the item's own packs
-      const r = await saveTrip(day, account, lines.map((l) => ({ ingredientId: l.ingredientId, name: l.name, qty: l.qty,
-        unit: l.unit, price: l.price, category: l.category })), shop);
+      const r = await safe(() => saveTrip(day, account, lines.map((l) => ({ ingredientId: l.ingredientId, name: l.name, qty: l.qty,
+        unit: l.unit, price: l.price, category: l.category })), shop));
       if (!r.ok) return toast(r.error, { tone: "warn" });
       toast(r.message);
       for (const [name, , , ch] of r.changes.slice(0, 4)) {

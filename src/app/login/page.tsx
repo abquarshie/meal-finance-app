@@ -6,10 +6,11 @@ export const metadata = { title: "Sign in" };
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  if (await getUser()) redirect("/");
   let first = false;
+  let signedIn = false;
   try {
-    first = (await userCount()) === 0;
+    signedIn = Boolean(await getUser());
+    first = !signedIn && (await userCount()) === 0;
   } catch (e) {
     console.error(e);
     return (
@@ -18,6 +19,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </div></div></div>
     );
   }
+  if (signedIn) redirect("/");
   const { next } = await searchParams;
   return (
     <div className="grid min-h-dvh place-items-start justify-center px-4 pt-[8vh] pb-8">
