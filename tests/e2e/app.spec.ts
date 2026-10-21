@@ -27,8 +27,10 @@ test("signed out, every page leads to sign-in and back", async ({ page }) => {
   await expect(page).toHaveURL(/\/budgets$/);
 });
 
-test("Home: this month", async ({ page }) => {
+test("Home: balances and this month", async ({ page }) => {
   await signIn(page);
+  await page.locator("summary", { hasText: "Account balances" }).click(); // folded by default
+  await expect(page.getByText("Susu").locator("..")).toContainText("savings");
   await expect(page.getByText(/^Income · /)).toBeVisible();
   await page.screenshot({ path: "test-results/home-phone.png", fullPage: true });
 });
