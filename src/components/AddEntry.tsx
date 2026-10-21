@@ -11,6 +11,7 @@ import type { EntryContext } from "@/lib/entry";
 import { CURRENCY, FEE_CATEGORY, KINDS, money, SHARED, type Kind } from "@/lib/money";
 import { describeMomo, parseMomo } from "@/lib/momo";
 import { Icon } from "./icons";
+import { quiet, safe } from "./safe";
 import { Sheet } from "./Sheet";
 import { useToast } from "./Toaster";
 import { Msg } from "./ui";
@@ -155,7 +156,7 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
     } else {
       if (momo) setAccts((x) => ({ ...x, [found.kind]: momo }));
       let cat = found.categoryHints.find((h) => ctx.categories[found.kind].includes(h)) ?? null;
-      if (!cat && found.party) cat = await categoryFor(found.kind, found.party);
+      if (!cat && found.party) cat = await quiet(() => categoryFor(found.kind, found.party), null);
       if (cat) setCats((x) => ({ ...x, [found.kind]: cat }));
     }
     const tips: Tip[] = [{ tone: "ok", text: `${describeMomo(found, ctx.today)}. Check the details, then save.` }];
@@ -178,9 +179,9 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
     if (!category || !account) return setError("Pick a category and an account.");
     if (sameAccounts) return setError("Pick two different accounts.");
     start(async () => {
-      const r = await addEntry({ kind, amount: amt, fee: feeAmt, date, category, account,
+      const r = await safe(() => addEntry({ kind, amount: amt, fee: feeAmt, date, category, account,
         to: kind === "Transfer" ? toAcct : null, who: kind === "Transfer" ? SHARED : who.trim() || SHARED,
-        note, momoId, confirmed });
+        note, momoId, confirmed }));
       if ("duplicate" in r) return setDup(r.duplicate);
       if (!r.ok) return setError(r.error);
       toast(r.message);

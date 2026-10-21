@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { deleteTransactions, restoreTransactions, updateTransaction } from "@/actions/entries";
 import { FeedRow, type FeedItem } from "@/components/Feed";
+import { safe } from "@/components/safe";
 import { Confirm, Sheet } from "@/components/Sheet";
 import { useToast } from "@/components/Toaster";
 import { Msg } from "@/components/ui";
@@ -31,14 +32,14 @@ export function TxList({ rows, total, categories, accounts, members, kindOf, sho
 
   function remove(ids: number[]) {
     start(async () => {
-      const r = await deleteTransactions(ids);
+      const r = await safe(() => deleteTransactions(ids));
       setAsking(null);
       if (!r.ok) return toast(r.error, { tone: "warn" });
       setPicked(new Set());
       setSelecting(false);
       setEditing(null);
       toast(`${r.message}.`, { action: { label: "Undo", run: () => start(async () => {
-        const back = await restoreTransactions(r.rows);
+        const back = await safe(() => restoreTransactions(r.rows));
         toast(back.ok ? back.message : back.error, back.ok ? undefined : { tone: "warn" });
       }) } });
     });
@@ -117,8 +118,8 @@ function EditForm({ row, categories, accounts, members, kindOf, onDone, onDelete
 
   function save() {
     start(async () => {
-      const r = await updateTransaction({ id: row.id, date: v.date, type: v.type, category: v.category, amount,
-        account: v.account, toAccount: v.toAccount, member: v.member || SHARED, note: v.note });
+      const r = await safe(() => updateTransaction({ id: row.id, date: v.date, type: v.type, category: v.category, amount,
+        account: v.account, toAccount: v.toAccount, member: v.member || SHARED, note: v.note }));
       if (!r.ok) return setError(r.error);
       toast(r.message);
       onDone();

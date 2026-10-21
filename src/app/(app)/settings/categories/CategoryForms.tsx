@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { addCategory, categoryUses, deleteCategory, editCategory, movePastEntries, renameGroup } from "@/actions/settings";
+import { quiet } from "@/components/safe";
 import { Confirm } from "@/components/Sheet";
 import { Empty, Msg } from "@/components/ui";
 import { useAct } from "@/components/useAct";
@@ -148,7 +149,7 @@ function Delete({ categories, used, label }: P) {
     let live = true;
     setUses(null);
     setMoveTo("");
-    if (c) categoryUses(c.name).then((u) => live && setUses(u));
+    if (c) quiet(() => categoryUses(c.name), {}).then((u) => live && setUses(u));
     return () => { live = false; };
   }, [c?.name]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!c) return <Empty>No categories yet.</Empty>;

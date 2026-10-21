@@ -1,6 +1,7 @@
 "use client";
 import { useOptimistic, useState, useTransition } from "react";
 import { markBought, removeFromPlan, setMealPeople, setPlanQty, tickMeal, untick } from "@/actions/kitchen";
+import { safe } from "@/components/safe";
 import { Sheet } from "@/components/Sheet";
 import { useToast } from "@/components/Toaster";
 import { Msg } from "@/components/ui";
@@ -14,7 +15,7 @@ function useRun() {
   const toast = useToast();
   const [busy, start] = useTransition();
   const run = (work: () => Promise<R>, extra?: (r: R) => void) => start(async () => {
-    const r = await work();
+    const r = await safe(work);
     toast(r.ok ? r.message! : r.error!, r.ok ? undefined : { tone: "warn" });
     if (r.ok) extra?.(r);
   });
@@ -30,7 +31,7 @@ function TickBox({ done, label, onTick, onUntick }: { done: boolean; label: stri
     <label className="meal-label check">
       <input type="checkbox" checked={shown} disabled={busy} onChange={() => start(async () => {
         setShown(!done);
-        const r = await (done ? onUntick() : onTick());
+        const r: R = await safe(done ? onUntick : onTick);
         toast(r.ok ? r.message! : r.error!, r.ok ? undefined : { tone: "warn" });
         if (r.shortText) toast(`Not in the pantry, so not taken off: ${r.shortText}. They're on the shopping list now; update the pantry if you had them.`, { tone: "warn" });
       })} />

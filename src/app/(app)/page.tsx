@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { AddEntryButton } from "@/components/AddEntry";
 import { BudgetList } from "@/components/Budgets";
 import { activity, Feed } from "@/components/Feed";
@@ -84,7 +85,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
             <div className="note">Add an account first in <Link href="/settings">Settings → Accounts</Link>.</div>
           )}
 
-          {b.feature("kitchen") ? <TodayMeals /> : null}
+          {b.feature("kitchen") ? ( // the money figures show first; today's meals follow when they're read
+            <Suspense fallback={<div className="skeleton h-32 rounded-2xl" />}><TodayMeals /></Suspense>
+          ) : null}
 
         </div>
 
