@@ -72,7 +72,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
           <div className="grid grid-cols-2 gap-3">
             <Kpi label={`Budget Left · ${monthShort(monthOf(now))}`} value={money(left)} valueClassName="text-emerald-500"
               foot={leftFoot(power)} />
-            <Kpi label={`Expenses · ${monthShort(period)}`} value={money(exp)} valueClassName="text-rose-500"
+            <Kpi label={`Expenses · ${monthShort(period)}`} value={money(exp)} tone="out"
               foot={<Pill tone={expPill.tone}>{expPill.text}</Pill>} />
           </div>
 
