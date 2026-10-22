@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { AddEntryButton } from "@/components/AddEntry";
 import { BudgetList } from "@/components/Budgets";
 import { activity, Feed } from "@/components/Feed";
@@ -8,13 +8,26 @@ import { Icon } from "@/components/icons";
 import { MonthSelect } from "@/components/MonthSelect";
 import { Empty, Kpi, Msg, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
-import { previousMonth } from "@/lib/book";
+import { previousMonth, type SpendingPower } from "@/lib/book";
 import { dayMonth, daysBetween, monthDays, monthName, monthOf, monthShort, today } from "@/lib/dates";
 import { loadBook, windowStart } from "@/lib/load";
 import { money } from "@/lib/money";
 import { changeText } from "@/lib/words";
 
 export const metadata = { title: "Home" };
+
+/** The line under Budget Left: why the figure is what it is. */
+function leftFoot(p: SpendingPower): ReactNode {
+  switch (p.state) {
+    case "debt": return `Everyday accounts are ${money(p.debt)} short`;
+    case "empty": return "Nothing in the everyday accounts";
+    case "committed": return "Auto payments due take it all";
+    case "over_budget": return `Over budget by ${money(-p.left)}`;
+    case "capped": return "Limited by everyday balance";
+    case "no_budget": return <Link href="/budgets">Set a budget</Link>;
+    default: return p.budget ? `Budget ${money(p.budget.limit)}` : "Everyday accounts";
+  }
+}
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
   const [user, base, sp] = await Promise.all([requireUser(), loadBook(), searchParams]);
@@ -24,17 +37,18 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
   // an older month than the usual window is read on its own (with the month before, for the comparison)
   const b = `${period}-01` < windowStart(now) ? await loadBook(period) : base;
 
-  // income and expenses, compared with last month (part-way through a month: the same days of last month)
-  const [inc, exp] = b.monthTotals(period);
+  // expenses, compared with last month (part-way through a month: the same days of last month)
+  const [, exp] = b.monthTotals(period);
   const prev = previousMonth(period);
   const sameDays = period === monthOf(now);
   const upto = sameDays ? Math.min(Number(now.slice(8)), monthDays(prev)) : undefined;
-  const [pInc, pExp] = b.monthTotals(prev, sameDays ? Number(now.slice(8)) : undefined);
+  const [, pExp] = b.monthTotals(prev, sameDays ? Number(now.slice(8)) : undefined);
   const versus = sameDays ? `1–${upto} ${monthShort(prev)}` : "last month";
-  const incPill = changeText(inc, pInc, true, versus);
   const expPill = changeText(exp, pExp, false, versus);
-  const total = b.budgetTotal(period);
-  const net = inc - exp;
+
+  // budget left this month, never more than the everyday accounts hold (savings accounts are never counted)
+  const power = base.spendingPower(now);
+  const left = Math.max(power.left, 0);
 
   const balances = [...b.balances()];
   const everyday = new Set(b.everydayAccounts);
@@ -56,11 +70,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="stack">
           <div className="grid grid-cols-2 gap-3">
-            <Kpi label={`Income · ${monthShort(period)}`} value={money(inc)} foot={<Pill tone={incPill.tone}>{incPill.text}</Pill>} />
-            <Kpi label={`Expenses · ${monthShort(period)}`} value={money(exp)} foot={<Pill tone={expPill.tone}>{expPill.text}</Pill>} />
-            <Kpi label="Net this month" value={money(net, true)} tone={net < 0 ? "out" : "in"} foot={net < 0 ? "Spent more than came in" : "Kept"} />
-            <Kpi label="Budget left" value={total ? money(total.left) : "—"} tone={total && total.left < 0 ? "out" : undefined}
-              foot={total ? `${money(total.spent)} of ${money(total.limit)}` : <Link href="/budgets">Set a budget</Link>} />
+            <Kpi label={`Budget Left · ${monthShort(monthOf(now))}`} value={money(left)} valueClassName="text-emerald-500"
+              foot={leftFoot(power)} />
+            <Kpi label={`Expenses · ${monthShort(period)}`} value={money(exp)} valueClassName="text-rose-500"
+              foot={<Pill tone={expPill.tone}>{expPill.text}</Pill>} />
           </div>
 
           <details className="card">
