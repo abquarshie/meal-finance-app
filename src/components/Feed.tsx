@@ -41,6 +41,24 @@ export function FeedRow({ i, showWho, names }: { i: FeedItem; showWho?: boolean;
   );
 }
 
+/** A date line over a day's entries, with what was spent that day on the right (left out when nothing was). */
+export function DayHead({ date, spent }: { date: ISODate; spent: number }) {
+  return (
+    <div className="feed-day flex items-baseline justify-between gap-3">
+      <span>{dayLabel(date)}</span>
+      {spent > 0 ? <span className="num font-medium">{money(-spent, true)}</span> : null}
+    </div>
+  );
+}
+
+/** Each day's expenses added up, from the rows on screen. */
+export function spentByDay(rows: { date: ISODate; type: string; amount: number }[]): Map<ISODate, number> {
+  const out = new Map<ISODate, number>();
+  for (const r of rows) if (r.type === "Expense") out.set(r.date, (out.get(r.date) ?? 0) + r.amount);
+  for (const [d, v] of out) out.set(d, Math.round(v * 100) / 100);
+  return out;
+}
+
 export function Feed({ items, showWho, names }: { items: FeedItem[]; showWho?: boolean; names?: Map<string, string> }) {
   let last: string | null = null;
   return (
