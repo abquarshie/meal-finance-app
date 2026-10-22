@@ -13,7 +13,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const items: NavItem[] = [
     { href: "/", label: "Home", icon: "home", match: ["/"] },
     { href: "/transactions", label: "Money", icon: "receipt", match: ["/transactions"] },
-    { href: "/budgets", label: "Budgets", icon: "donut", match: ["/budgets"] },
+    { href: "/budgets", label: "Budgets", icon: "donut", match: ["/budgets", "/goals"] },
     ...(book.feature("kitchen") ? [{ href: "/meals", label: "Kitchen", icon: "restaurant" as const, match: ["/meals", "/shopping", "/pantry"] }] : []),
     { href: "/settings", label: "Settings", icon: "settings", match: ["/settings"] },
   ];

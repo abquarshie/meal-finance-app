@@ -10,6 +10,7 @@ import { Empty, Kpi, Msg, Pill } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { previousMonth, type SpendingPower } from "@/lib/book";
 import { dayMonth, daysBetween, monthDays, monthName, monthOf, monthShort, today } from "@/lib/dates";
+import { loadGoals } from "@/lib/goals";
 import { loadBook, windowStart } from "@/lib/load";
 import { money } from "@/lib/money";
 import { changeText } from "@/lib/words";
@@ -30,7 +31,8 @@ function leftFoot(p: SpendingPower): ReactNode {
 }
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const [user, base, sp] = await Promise.all([requireUser(), loadBook(), searchParams]);
+  const [user, base, sp, goals] = await Promise.all([requireUser(), loadBook(), searchParams,
+    loadGoals().catch((e) => { console.error(e); return []; })]); // goals never stop Home from showing
   const now = today();
   const months = base.months(now);
   const period = sp.month && months.includes(sp.month) ? sp.month : monthOf(now);
@@ -78,12 +80,18 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
 
           <details className="card">
             <summary className="[&_svg]:size-5 [&_svg]:text-muted"><Icon name="wallet" /> Account balances</summary>
-            {balances.length ? (
+            {balances.length || goals.length ? (
               <div className="grid gap-x-6 sm:grid-cols-2">
                 {balances.map(([n, v]) => (
                   <div className="flex justify-between gap-3 border-b border-line py-2 text-sm" key={n}>
                     <span className="truncate text-muted">{n}{everyday.has(n) ? null : <i className="tag">savings</i>}</span>
                     <b className={`tabular-nums${v < 0 ? " text-out" : ""}`}>{money(v)}</b>
+                  </div>
+                ))}
+                {goals.map((g) => (
+                  <div className="flex justify-between gap-3 border-b border-line py-2 text-sm" key={`g${g.id}`}>
+                    <span className="truncate text-muted">{g.name}<i className="tag">goal</i></span>
+                    <b className="tabular-nums">{money(g.currentAmount)}</b>
                   </div>
                 ))}
               </div>
