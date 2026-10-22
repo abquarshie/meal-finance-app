@@ -1,12 +1,11 @@
 "use client";
 import { useState, useTransition } from "react";
 import { deleteTransactions, restoreTransactions, updateTransaction } from "@/actions/entries";
-import { FeedRow, type FeedItem } from "@/components/Feed";
+import { DayHead, FeedRow, spentByDay, type FeedItem } from "@/components/Feed";
 import { safe } from "@/components/safe";
 import { Confirm, Sheet } from "@/components/Sheet";
 import { useToast } from "@/components/Toaster";
 import { Msg } from "@/components/ui";
-import { dayLabel } from "@/lib/dates";
 import { CURRENCY, KINDS, SHARED, type Kind } from "@/lib/money";
 
 export type Row = {
@@ -46,6 +45,7 @@ export function TxList({ rows, total, categories, accounts, members, kindOf, sho
   }
 
   let last: string | null = null;
+  const spentOn = spentByDay(shown);
   return (
     <>
       <div className="btns" style={{ justifyContent: "space-between", marginBottom: ".2rem" }}>
@@ -61,7 +61,7 @@ export function TxList({ rows, total, categories, accounts, members, kindOf, sho
       </div>
       <div className="feed">
         {shown.map((r) => {
-          const head = r.date !== last ? <div className="feed-day">{dayLabel(r.date)}</div> : null;
+          const head = r.date !== last ? <DayHead date={r.date} spent={spentOn.get(r.date) ?? 0} /> : null;
           last = r.date;
           return (
             <div key={r.id}>
