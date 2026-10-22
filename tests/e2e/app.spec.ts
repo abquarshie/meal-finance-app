@@ -31,7 +31,8 @@ test("Home: balances and this month", async ({ page }) => {
   await signIn(page);
   await page.locator("summary", { hasText: "Account balances" }).click(); // folded by default
   await expect(page.getByText("Susu").locator("..")).toContainText("savings");
-  await expect(page.getByText(/^Income · /)).toBeVisible();
+  await expect(page.getByText(/^Budget Left · /)).toBeVisible();
+  await expect(page.getByText(/^Expenses · /)).toBeVisible();
   await page.screenshot({ path: "test-results/home-phone.png", fullPage: true });
 });
 

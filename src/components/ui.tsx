@@ -22,13 +22,13 @@ export function Section({ title, aside }: { title: string; aside?: string }) {
 
 /** One figure on a summary card: a label, the number and an optional pill or line underneath. Plain text only, so a
  * row of them renders instantly. */
-export function Kpi({ label, value, foot, tone, className = "" }: {
-  label: string; value: string; foot?: ReactNode; tone?: "in" | "out"; className?: string;
+export function Kpi({ label, value, foot, tone, className = "", valueClassName }: {
+  label: string; value: string; foot?: ReactNode; tone?: "in" | "out"; className?: string; valueClassName?: string;
 }) {
   return (
     <div className={`${className} min-w-0 rounded-2xl border border-line bg-surface p-3.5 shadow-soft md:p-4`}>
       <div className="truncate text-xs font-medium text-muted">{label}</div>
-      <div className={`num mt-1 mb-1.5 truncate text-lg font-bold tracking-tight md:text-2xl${tone === "out" ? " text-out" : tone === "in" ? " text-in" : ""}`}>{value}</div>
+      <div className={`num mt-1 mb-1.5 truncate text-lg font-bold tracking-tight md:text-2xl${valueClassName ? ` ${valueClassName}` : tone === "out" ? " text-out" : tone === "in" ? " text-in" : ""}`}>{value}</div>
       {foot ? <div className="truncate text-xs text-muted">{foot}</div> : null}
     </div>
   );
