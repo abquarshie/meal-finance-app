@@ -1,5 +1,5 @@
 import { BudgetList } from "@/components/Budgets";
-import { Empty, Kpi, PageHead, Section } from "@/components/ui";
+import { Empty, Kpi, PageHead, Section, Tabs } from "@/components/ui";
 import { monthName, monthOf, today } from "@/lib/dates";
 import { loadBook } from "@/lib/load";
 import { money } from "@/lib/money";
@@ -28,6 +28,7 @@ export default async function Budgets() {
   return (
     <>
       <PageHead title="Budgets" sub="A monthly limit for a whole group, like Food, or for one category" />
+      <Tabs current="/budgets" tabs={[{ href: "/budgets", label: "Budgets" }, { href: "/goals", label: "Goals" }]} />
       {total ? (
         <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <Kpi label="Budgeted" value={money(total.limit)} />
