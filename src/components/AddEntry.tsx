@@ -1,7 +1,7 @@
 "use client";
 // The add-entry form. Built for speed on a phone: type the amount, tap a category, tap Save.
 // - Amount, category and account up front. The ones used last are already picked; the most-used are one-tap chips.
-// - Date, note, who it was for and any fee sit under "More details". The date is Today unless changed there.
+// - What was bought (the note) sits under the account. Date, who it was for and any fee sit under "More details". The date is Today unless changed there.
 // - After a category is picked, "Same as last time" fills in the last amount used.
 // - A pasted MoMo text fills the form in.
 import { useEffect, useMemo, useState, useTransition } from "react";
@@ -116,12 +116,11 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
 
   const details = useMemo(() => {
     const bits = [when === "Other day" ? "another day" : when];
-    if (note.trim()) bits.push("note");
     if (kind !== "Transfer" && who !== SHARED) bits.push(`for ${who}`);
     if (feeAmt) bits.push(`${money(feeAmt)} fee`);
     return bits.join(", ");
-  }, [when, note, kind, who, feeAmt]);
-  const busyDetails = when !== "Today" || Boolean(note.trim()) || Boolean(feeAmt) || (kind !== "Transfer" && who !== SHARED);
+  }, [when, kind, who, feeAmt]);
+  const busyDetails = when !== "Today" || Boolean(feeAmt) || (kind !== "Transfer" && who !== SHARED);
 
   const sameAccounts = kind === "Transfer" && account === toAcct;
   const leaves = amt && kind !== "Income" && account ? (ctx.balances[account] ?? 0) - amt - (feeAmt ?? 0) : null;
@@ -242,6 +241,11 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
         </>
       )}
 
+      <label className="field"><span>{kind === "Expense" ? "Item bought / description" : "Description"}</span>
+        <input className="input" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500}
+          placeholder={kind === "Expense" ? "Optional, e.g. Rice and tomatoes, Makola" : kind === "Income" ? "Optional, e.g. October salary" : "Optional"} />
+      </label>
+
       <details className="more" open={busyDetails || undefined}>
         <summary>More details · {details}</summary>
         <div className="form">
@@ -256,9 +260,6 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
               {otherDay > ctx.today ? <Msg tone="warn">This date is in the future.</Msg> : null}
             </>
           ) : null}
-          <label className="field"><span>Note</span>
-            <input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional, e.g. Makola market" maxLength={500} />
-          </label>
           {kind === "Transfer" || feeAmt ? (
             <label className="field"><span>Fee ({CURRENCY}), optional</span>
               <input className="input" type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00" value={fee}

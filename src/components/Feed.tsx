@@ -46,7 +46,9 @@ export function DayHead({ date, spent }: { date: ISODate; spent: number }) {
   return (
     <div className="feed-day flex items-baseline justify-between gap-3">
       <span>{dayLabel(date)}</span>
-      {spent > 0 ? <span className="num font-medium">{money(-spent, true)}</span> : null}
+      {spent > 0 ? (
+        <span className="num rounded-full bg-out-soft px-2 py-px text-[11px] font-semibold text-out">Spent {money(-spent, true)}</span>
+      ) : null}
     </div>
   );
 }
