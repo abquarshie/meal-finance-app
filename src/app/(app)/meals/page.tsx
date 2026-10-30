@@ -1,29 +1,17 @@
 import Link from "next/link";
-import { TodayCard } from "@/components/kitchen/TodayCard";
-import { Empty, Kpi, Msg, Pill, Section } from "@/components/ui";
-import { requireUser } from "@/lib/auth";
-import { addDays, monthName, monthOf, monthShort, today as todayISO } from "@/lib/dates";
-import { foodBudget, guard } from "@/lib/kitchen/kitchen";
+import { Empty, Pill, Section } from "@/components/ui";
+import { addDays, today as todayISO } from "@/lib/dates";
 import { loadKitchen } from "@/lib/kitchen/load";
 import { aDb, SLOTS } from "@/lib/kitchen/logic";
 import { frac, plural } from "@/lib/kitchen/units";
-import { loadBook } from "@/lib/load";
-import { money } from "@/lib/money";
 
 export const metadata = { title: "Home" };
 
-/** The Meal app's home: this month's food money, today's meals, what's coming up, what's running low and what's in
- * the fridge, each with a way into the page that deals with it. */
+/** The Meal app's home: what's coming up, what's running low and what's in the fridge, each with a way into the
+ * page that deals with it. */
 export default async function MealHome() {
-  const [user, k, b] = await Promise.all([requireUser(), loadKitchen(), loadBook()]);
+  const k = await loadKitchen();
   const today = todayISO();
-  const period = monthOf(today);
-
-  // food money this month: against the food budget when there is one, else just what was spent
-  const cats = new Set([...k.foodCategories].filter(Boolean));
-  const fb = cats.size ? foodBudget(b, cats, today) : null;
-  const spent = fb ? fb.spent : b.monthExpenses(period).filter((t) => cats.has(t.category)).reduce((a, t) => a + t.amount, 0);
-  const g = guard(k, b, today);
 
   const soon = [1, 2].map((n) => addDays(today, n)).map((d) => ({
     day: d, meals: SLOTS.map((slot) => ({ slot, parts: k.entries(d).filter((e) => e.slot === slot) }))
@@ -35,24 +23,9 @@ export default async function MealHome() {
 
   return (
     <>
-      <div className="mb-5">
-        <div className="text-sm text-muted">{aDb(today)}</div>
-        <h1 className="page-title">Hello, {user.name}</h1>
-      </div>
-
+      <h1 className="sr-only">Meal home</h1>
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="stack">
-          <div className="grid grid-cols-2 gap-3">
-            <Kpi label={`Food Budget Left · ${monthShort(period)}`} value={fb ? money(Math.max(fb.limit - fb.spent, 0)) : "—"}
-              valueClassName="text-emerald-500"
-              foot={fb ? (fb.spent > fb.limit ? `Over by ${money(fb.spent - fb.limit)}` : `Budget ${money(fb.limit)}`) : <Link href="/budgets">Set a food budget</Link>} />
-            <Kpi label={`Food Spent · ${monthShort(period)}`} value={money(spent)} tone="out"
-              foot={fb ? fb.names.join(" and ") : monthName(period, false)} />
-          </div>
-          {g ? <Msg tone={g[0] as "warn" | "hint"}>{g[1]}</Msg> : null}
-
-          <TodayCard k={k} />
-
           <div className="card">
             <Section title="Coming up" />
             {soon.map((d) => (
