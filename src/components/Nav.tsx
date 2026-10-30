@@ -15,7 +15,8 @@ const ITEMS: Record<Space, NavItem[]> = {
     { href: "/settings", label: "Settings", icon: "settings", match: ["/settings"] },
   ],
   meals: [
-    { href: "/meals", label: "Plan", icon: "restaurant", match: ["/meals"] },
+    { href: "/meals", label: "Home", icon: "home", match: ["/meals$"] },
+    { href: "/meals/plan", label: "Plan", icon: "restaurant", match: ["/meals/plan", "/meals/recipes"] },
     { href: "/shopping", label: "Shopping", icon: "cart", match: ["/shopping"] },
     { href: "/pantry", label: "Pantry", icon: "pantry", match: ["/pantry", "/meals/fridge"] },
     { href: "/meals/household", label: "Household", icon: "clean", match: ["/meals/household"] },
@@ -24,9 +25,10 @@ const ITEMS: Record<Space, NavItem[]> = {
 };
 
 function active(path: string, item: NavItem, items: NavItem[]) {
-  const hit = (m: string) => (m === "/" ? path === "/" : path === m || path.startsWith(`${m}/`));
+  // "/" and anything ending in "$" match only that exact page
+  const hit = (m: string) => (m === "/" || m.endsWith("$") ? path === m.replace(/\$$/, "") : path === m || path.startsWith(`${m}/`));
   if (!item.match.some(hit)) return false;
-  // "/meals" also covers /meals/household; the longer, more specific item wins
+  // when two items both match, the longer, more specific one wins
   const len = Math.max(...item.match.filter(hit).map((m) => m.length));
   return !items.some((o) => o !== item && o.match.some((m) => hit(m) && m.length > len));
 }
@@ -87,5 +89,23 @@ export function TabBar({ initial }: { initial: Space }) {
         </Link>
       ))}
     </nav>
+  );
+}
+
+/** Phones only (no sidebar there): the app you're in on the left and a one-tap switch to the other on the right. */
+export function MobileBar({ initial }: { initial: Space }) {
+  const space = useSpace(initial);
+  const app = APPS[space];
+  const other = APPS[space === "money" ? "meals" : "money"];
+  return (
+    <div className="mb-4 flex items-center justify-between gap-3 md:hidden">
+      <Link href={app.home} className="flex items-center gap-2 text-base font-bold tracking-tight text-ink no-underline">
+        <img src={app.icon} alt="" className="size-7" />{app.name}
+      </Link>
+      <Link href={other.home} aria-label={`Switch to ${other.name}`}
+        className="flex items-center gap-1.5 rounded-full border border-line bg-surface py-1 pr-3 pl-1 text-[13px] font-semibold text-ink no-underline shadow-soft">
+        <img src={other.icon} alt="" className="size-6" />{other.name}
+      </Link>
+    </div>
   );
 }

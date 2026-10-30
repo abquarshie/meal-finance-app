@@ -1,7 +1,7 @@
 {
   "id": "/meals",
-  "name": "Jollof",
-  "short_name": "Jollof",
+  "name": "Meal",
+  "short_name": "Meal",
   "description": "Family meals, planned",
   "start_url": "/meals",
   "scope": "/",

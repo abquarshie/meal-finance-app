@@ -18,7 +18,7 @@ export function Problem({ error, reset, full = false }: { error: Error & { diges
         </div>
         <h1 className="m-0 text-lg font-bold">{offline ? "You're offline" : "This page didn't load"}</h1>
         <p className="mt-1.5 mb-4 text-sm text-muted">
-          {offline ? "Cashew needs the internet to show your latest figures. Reconnect, then try again."
+          {offline ? "The app needs the internet to show your latest figures. Reconnect, then try again."
             : "Nothing you saved is lost. This is usually a brief hiccup reaching the database."}
         </p>
         <div className="btns justify-center">

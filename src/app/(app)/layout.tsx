@@ -1,7 +1,7 @@
 import { signOutAction } from "@/actions/people";
 import { AddEntry } from "@/components/AddEntry";
 import { Icon } from "@/components/icons";
-import { Brand, SideNav, SwitchApp, TabBar } from "@/components/Nav";
+import { Brand, MobileBar, SideNav, SwitchApp, TabBar } from "@/components/Nav";
 import { requireUser } from "@/lib/auth";
 import { entryContext } from "@/lib/entry";
 import { loadBook } from "@/lib/load";
@@ -32,7 +32,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </form>
         </div>
       </aside>
-      <main className="mx-auto w-full max-w-6xl px-4 pt-5 pb-28 md:px-8 md:pt-9 md:pb-16">{children}</main>
+      <main className="mx-auto w-full max-w-6xl px-4 pt-5 pb-28 md:px-8 md:pt-9 md:pb-16">
+        {book.feature("kitchen") ? <MobileBar initial={space} /> : null}
+        {children}
+      </main>
       <TabBar initial={space} />
       <AddEntry ctx={entryContext(book)} />
     </div>

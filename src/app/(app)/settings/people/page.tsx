@@ -31,7 +31,7 @@ export default async function People() {
   }
   return (
     <>
-      <SettingsHead current="/settings/people" sub="Your account, and who else can use this Cashew" />
+      <SettingsHead current="/settings/people" sub="Your account, and who else can use the app" />
       <div className={me.isOwner ? "grid2" : ""} style={me.isOwner ? undefined : { maxWidth: 560 }}>
         <MyAccount me={me} />
         {me.isOwner ? (
