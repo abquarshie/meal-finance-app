@@ -1,0 +1,31 @@
+{
+  "id": "/meals",
+  "name": "Jollof",
+  "short_name": "Jollof",
+  "description": "Family meals, planned",
+  "start_url": "/meals",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F5F7F8",
+  "theme_color": "#E2541B",
+  "icons": [
+    {
+      "src": "/icon-meals-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-meals-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-meals-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

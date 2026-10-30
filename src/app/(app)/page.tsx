@@ -123,7 +123,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
             <summary>Recent activity</summary>
             {items.length ? (
               <>
-                <Feed items={items} showWho={b.multiMember} names={b.users.length > 1 ? b.nameOfUser : undefined} />
+                <Feed items={items} showWho={b.multiMember} />
                 <Link className="btn ghost mt-1" href="/transactions">See all transactions</Link>
               </>
             ) : <Empty>Nothing recorded yet. Tap Add an entry to record your first one.</Empty>}

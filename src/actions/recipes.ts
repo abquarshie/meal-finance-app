@@ -154,6 +154,14 @@ export async function addCatalog(): Promise<Result> {
   });
 }
 
+export async function addStarterSupplies(): Promise<Result> {
+  await requireUser();
+  return attempt(async () => {
+    const n = await prisma.$transaction((tx) => loadSupplies(tx));
+    return ok(`Added ${n} household item${n === 1 ? "" : "s"}. Count what you have with + and −.`);
+  });
+}
+
 export async function addStarterRecipes(): Promise<Result> {
   await requireUser();
   return attempt(async () => {

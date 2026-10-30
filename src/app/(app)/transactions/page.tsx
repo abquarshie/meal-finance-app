@@ -37,8 +37,7 @@ export default async function Transactions({ searchParams }: {
             <TxFilters months={b.months()} filter={f} />
             {rows.length ? (
               <TxList rows={rows} total={view.count} categories={b.categoryNames()} accounts={b.accountNames} members={b.members()}
-                kindOf={Object.fromEntries(b.kindOf)} showWho={b.multiMember}
-                names={b.users.length > 1 ? Object.fromEntries(b.nameOfUser) : null} />
+                kindOf={Object.fromEntries(b.kindOf)} showWho={b.multiMember} />
             ) : <Empty>Nothing matches these filters.</Empty>}
             <p className="caption">
               <a className="btn ghost" href={`/api/transactions?${qs}`} download><Icon name="download" /> Download {entries(view.count)} as a spreadsheet (CSV)</a>

@@ -2,7 +2,7 @@ import { PageHead, Tabs } from "@/components/ui";
 
 const TABS = [
   { href: "/meals", label: "Plan" }, { href: "/shopping", label: "Shopping" }, { href: "/pantry", label: "Pantry" },
-  { href: "/meals/fridge", label: "Fridge" }, { href: "/meals/recipes", label: "Recipes" },
+  { href: "/meals/fridge", label: "Fridge" }, { href: "/meals/household", label: "Household" }, { href: "/meals/recipes", label: "Recipes" },
   { href: "/meals/settings", label: "Settings" },
 ];
 
