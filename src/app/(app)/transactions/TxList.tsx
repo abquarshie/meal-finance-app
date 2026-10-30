@@ -10,11 +10,11 @@ import { CURRENCY, KINDS, SHARED, type Kind } from "@/lib/money";
 
 export type Row = {
   id: number; date: string; type: Kind; category: string; amount: number; account: string; toAccount: string;
-  member: string; note: string; shown: string; isAuto: boolean; isFee: boolean; by: string;
+  member: string; note: string; shown: string; isAuto: boolean; isFee: boolean;
 };
 
 const item = (r: Row): FeedItem => ({ key: String(r.id), date: r.date, kind: r.type, title: r.category, amount: r.amount,
-  account: r.account, to: r.toAccount, who: r.member, note: r.shown, auto: r.isAuto, fee: r.isFee, by: r.by });
+  account: r.account, to: r.toAccount, who: r.member, note: r.shown, auto: r.isAuto, fee: r.isFee });
 
 export function TxList({ rows, total, categories, accounts, members, kindOf, showWho }: {
   rows: Row[]; total: number; categories: string[]; accounts: string[]; members: string[]; kindOf: Record<string, Kind>;
