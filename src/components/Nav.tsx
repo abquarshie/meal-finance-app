@@ -91,3 +91,21 @@ export function TabBar({ initial }: { initial: Space }) {
     </nav>
   );
 }
+
+/** Phones only (no sidebar there): the app you're in on the left and a one-tap switch to the other on the right. */
+export function MobileBar({ initial }: { initial: Space }) {
+  const space = useSpace(initial);
+  const app = APPS[space];
+  const other = APPS[space === "money" ? "meals" : "money"];
+  return (
+    <div className="mb-4 flex items-center justify-between gap-3 md:hidden">
+      <Link href={app.home} className="flex items-center gap-2 text-base font-bold tracking-tight text-ink no-underline">
+        <img src={app.icon} alt="" className="size-7" />{app.name}
+      </Link>
+      <Link href={other.home} aria-label={`Switch to ${other.name}`}
+        className="flex items-center gap-1.5 rounded-full border border-line bg-surface py-1 pr-3 pl-1 text-[13px] font-semibold text-ink no-underline shadow-soft">
+        <img src={other.icon} alt="" className="size-6" />{other.name}
+      </Link>
+    </div>
+  );
+}
