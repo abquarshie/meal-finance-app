@@ -10,15 +10,15 @@ import { CURRENCY, KINDS, SHARED, type Kind } from "@/lib/money";
 
 export type Row = {
   id: number; date: string; type: Kind; category: string; amount: number; account: string; toAccount: string;
-  member: string; note: string; shown: string; isAuto: boolean; isFee: boolean; by: string;
+  member: string; note: string; shown: string; isAuto: boolean; isFee: boolean;
 };
 
 const item = (r: Row): FeedItem => ({ key: String(r.id), date: r.date, kind: r.type, title: r.category, amount: r.amount,
-  account: r.account, to: r.toAccount, who: r.member, note: r.shown, auto: r.isAuto, fee: r.isFee, by: r.by });
+  account: r.account, to: r.toAccount, who: r.member, note: r.shown, auto: r.isAuto, fee: r.isFee });
 
-export function TxList({ rows, total, categories, accounts, members, kindOf, showWho, names }: {
+export function TxList({ rows, total, categories, accounts, members, kindOf, showWho }: {
   rows: Row[]; total: number; categories: string[]; accounts: string[]; members: string[]; kindOf: Record<string, Kind>;
-  showWho: boolean; names: Record<string, string> | null;
+  showWho: boolean;
 }) {
   const toast = useToast();
   const [editing, setEditing] = useState<Row | null>(null);
@@ -26,7 +26,6 @@ export function TxList({ rows, total, categories, accounts, members, kindOf, sho
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [asking, setAsking] = useState<number[] | null>(null);
   const [busy, start] = useTransition();
-  const nameMap = names ? new Map(Object.entries(names)) : undefined;
   const shown = rows;
 
   function remove(ids: number[]) {
@@ -74,11 +73,11 @@ export function TxList({ rows, total, categories, accounts, members, kindOf, sho
                       if (e.target.checked) s.add(r.id); else s.delete(r.id);
                       setPicked(s);
                     }} />
-                  <FeedRow i={item(r)} showWho={showWho} names={nameMap} />
+                  <FeedRow i={item(r)} showWho={showWho} />
                 </label>
               ) : (
                 <button type="button" className="feed-row" onClick={() => setEditing(r)}>
-                  <FeedRow i={item(r)} showWho={showWho} names={nameMap} />
+                  <FeedRow i={item(r)} showWho={showWho} />
                 </button>
               )}
             </div>

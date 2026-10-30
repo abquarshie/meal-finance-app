@@ -1,3 +1,4 @@
+import { OtherApp } from "@/components/OtherApp";
 import { SettingsHead } from "@/components/SettingsTabs";
 import { Empty, Section } from "@/components/ui";
 import { prisma } from "@/lib/db";
@@ -43,6 +44,7 @@ export default async function Accounts() {
           accounts={b.accounts.map((a) => ({ name: a.name, opening: a.openingBalance, spendable: a.spendable,
             balance: bal.get(a.name) ?? 0, used: used(a.name) }))} />
       </div>
+      <OtherApp from="money" />
     </>
   );
 }

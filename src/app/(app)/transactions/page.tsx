@@ -19,7 +19,7 @@ export default async function Transactions({ searchParams }: {
   const view = await findTransactions(b, f, SHOWN);
   const rows: Row[] = view.rows.map((t) => ({ id: t.id, date: t.date, type: t.type, category: t.category, amount: t.amount,
     account: t.account, toAccount: t.toAccount, member: t.member, note: t.note, shown: cleanNote(t.note), isAuto: t.isAuto,
-    isFee: t.isFee, by: t.createdBy }));
+    isFee: t.isFee }));
   const qs = new URLSearchParams({ month: f.month, ...(f.kinds.length ? { type: f.kinds.join(",") } : {}), ...(f.q ? { q: f.q } : {}) });
   const hasAny = b.months().length > 1 || b.tx.length > 0;
   return (
@@ -37,8 +37,7 @@ export default async function Transactions({ searchParams }: {
             <TxFilters months={b.months()} filter={f} />
             {rows.length ? (
               <TxList rows={rows} total={view.count} categories={b.categoryNames()} accounts={b.accountNames} members={b.members()}
-                kindOf={Object.fromEntries(b.kindOf)} showWho={b.multiMember}
-                names={b.users.length > 1 ? Object.fromEntries(b.nameOfUser) : null} />
+                kindOf={Object.fromEntries(b.kindOf)} showWho={b.multiMember} />
             ) : <Empty>Nothing matches these filters.</Empty>}
             <p className="caption">
               <a className="btn ghost" href={`/api/transactions?${qs}`} download><Icon name="download" /> Download {entries(view.count)} as a spreadsheet (CSV)</a>

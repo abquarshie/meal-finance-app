@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { APPS } from "@/lib/apps";
 import { getUser, userCount } from "@/lib/auth";
+import { currentSpace } from "@/lib/space";
 import { AuthForms } from "./AuthForms";
 
 export const metadata = { title: "Sign in" };
@@ -19,17 +21,18 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </div></div></div>
     );
   }
-  if (signedIn) redirect("/");
   const { next } = await searchParams;
+  const app = APPS[await currentSpace()];
+  if (signedIn) redirect(next?.startsWith("/") && !next.startsWith("//") ? next : app.home);
   return (
     <div className="grid min-h-dvh place-items-start justify-center px-4 pt-[8vh] pb-8">
       <div className="card w-[min(28rem,calc(100vw-2rem))] p-6">
         <div className="mb-5 text-center">
-          <img src="/icon.svg" alt="" className="mx-auto mb-3 size-12" />
-          <div className="text-2xl font-bold tracking-tight">Cashew</div>
-          <div className="mt-0.5 text-sm text-muted">{first ? "Set up your family's Cashew" : "Family money, together"}</div>
+          <img src={app.icon} alt="" className="mx-auto mb-3 size-12" />
+          <div className="text-2xl font-bold tracking-tight">{app.name}</div>
+          <div className="mt-0.5 text-sm text-muted">{first ? `Set up your family's ${app.name}` : app.tagline}</div>
         </div>
-        <AuthForms first={first} next={next ?? "/"} />
+        <AuthForms first={first} next={next ?? app.home} />
       </div>
     </div>
   );

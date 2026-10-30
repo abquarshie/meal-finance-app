@@ -5,12 +5,12 @@ import { Pill } from "./ui";
 
 export type FeedItem = {
   key: string; date: ISODate; kind: "Income" | "Expense" | "Transfer"; title: string; amount: number;
-  account: string; to: string; who: string; note: string; auto: boolean; fee: boolean; by: string;
+  account: string; to: string; who: string; note: string; auto: boolean; fee: boolean;
 };
 
 export function txItem(t: Tx): FeedItem {
   return { key: `t${t.id}`, date: t.date, kind: t.type, title: t.category, amount: t.amount, account: t.account,
-    to: t.toAccount, who: t.member, note: cleanNote(t.note), auto: t.isAuto, fee: t.isFee, by: t.createdBy };
+    to: t.toAccount, who: t.member, note: cleanNote(t.note), auto: t.isAuto, fee: t.isFee };
 }
 
 /** The latest transactions, newest first. */
@@ -18,7 +18,7 @@ export function activity(b: Book, limit = 8): FeedItem[] {
   return b.tx.slice(0, limit).map(txItem);
 }
 
-export function FeedRow({ i, showWho, names }: { i: FeedItem; showWho?: boolean; names?: Map<string, string> }) {
+export function FeedRow({ i, showWho }: { i: FeedItem; showWho?: boolean }) {
   const [icon, cls, amount, where] =
     i.kind === "Income" ? ["+", "in", money(i.amount, true), i.account]
       : i.kind === "Expense" ? ["−", "out", money(-i.amount, true), i.account]
@@ -27,7 +27,6 @@ export function FeedRow({ i, showWho, names }: { i: FeedItem; showWho?: boolean;
   if (where) meta.push(<b key="w">{where}</b>);
   if (showWho && i.who !== SHARED) meta.push(i.who);
   if (i.note && !i.auto) meta.push(i.note);
-  if (names && i.by) meta.push(`added by ${names.get(i.by) ?? i.by}`);
   return (
     <>
       <div className={`feed-icon ${cls}`} aria-hidden>{icon}</div>
@@ -61,7 +60,7 @@ export function spentByDay(rows: { date: ISODate; type: string; amount: number }
   return out;
 }
 
-export function Feed({ items, showWho, names }: { items: FeedItem[]; showWho?: boolean; names?: Map<string, string> }) {
+export function Feed({ items, showWho }: { items: FeedItem[]; showWho?: boolean }) {
   let last: string | null = null;
   return (
     <div className="feed">
@@ -71,7 +70,7 @@ export function Feed({ items, showWho, names }: { items: FeedItem[]; showWho?: b
         return (
           <div key={i.key}>
             {head}
-            <div className="feed-row"><FeedRow i={i} showWho={showWho} names={names} /></div>
+            <div className="feed-row"><FeedRow i={i} showWho={showWho} /></div>
           </div>
         );
       })}
