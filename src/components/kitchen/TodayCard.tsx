@@ -22,7 +22,7 @@ export function TodayCard({ k, onPlan = false }: { k: Kitchen; onPlan?: boolean 
           </div>
         )) : <div className="today-row"><div className="today-dish muted">Nothing planned for today.</div></div>}
         {onPlan ? s.notes.map(([tone, text], i) => <div key={i} className={`note ${TONE[tone] ?? ""}`} style={{ marginTop: ".5rem" }}>{text}</div>) : (
-          <Link className="btn ghost" href="/meals" style={{ marginTop: ".4rem" }}>
+          <Link className="btn ghost" href="/meals/plan" style={{ marginTop: ".4rem" }}>
             Open the meal plan{s.reminders.length ? ` · ${s.reminders.length} reminder${s.reminders.length === 1 ? "" : "s"}` : ""}
           </Link>
         )}

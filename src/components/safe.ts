@@ -3,8 +3,8 @@ import { unstable_isUnrecognizedActionError, unstable_rethrow } from "next/navig
 
 export type Failed = { ok: false; error: string };
 
-export const OFFLINE = "Couldn't reach Cashew. Check your connection and try again.";
-export const UPDATED = "Cashew was just updated. Reload the page, then try again.";
+export const OFFLINE = "Couldn't reach the app. Check your connection and try again.";
+export const UPDATED = "The app was just updated. Reload the page, then try again.";
 
 /** Why a server action call failed before it could answer: the phone is offline, the server fell over, or a new
  * version was deployed while this page was open (its actions no longer exist). */

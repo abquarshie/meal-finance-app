@@ -1,110 +1,102 @@
 import Link from "next/link";
-import { KitchenHead } from "@/components/kitchen/KitchenTabs";
-import { AddToPlan, type Option } from "@/components/kitchen/AddToPlan";
-import { CopyWeek } from "@/components/kitchen/CopyWeek";
-import { MealCard, type PayInfo } from "@/components/kitchen/MealCard";
 import { TodayCard } from "@/components/kitchen/TodayCard";
-import { Empty, Msg, Pill } from "@/components/ui";
-import type { Book } from "@/lib/book";
-import { addDays, today as todayISO } from "@/lib/dates";
-import { guard, type Kitchen } from "@/lib/kitchen/kitchen";
+import { Empty, Kpi, Msg, Pill, Section } from "@/components/ui";
+import { requireUser } from "@/lib/auth";
+import { addDays, monthName, monthOf, monthShort, today as todayISO } from "@/lib/dates";
+import { foodBudget, guard } from "@/lib/kitchen/kitchen";
 import { loadKitchen } from "@/lib/kitchen/load";
-import { aD, repeatPlan, SLOTS, type Entry } from "@/lib/kitchen/logic";
-import { frac, unitsFor } from "@/lib/kitchen/units";
-import { dayView, type DayView } from "@/lib/kitchen/views";
+import { aDb, SLOTS } from "@/lib/kitchen/logic";
+import { frac, plural } from "@/lib/kitchen/units";
 import { loadBook } from "@/lib/load";
+import { money } from "@/lib/money";
 
-export const metadata = { title: "Meal plan" };
+export const metadata = { title: "Home" };
 
-/** Where a payment for bought food is logged: the dish's own category, else Dining Out, else any food one. */
-function payCategory(k: Kitchen, b: Book, e: Entry | undefined): string | null {
-  const cats = b.categoryNames("Expense");
-  const own = e?.recipeId ? k.recipes.get(e.recipeId)?.category : null;
-  for (const c of [own, "Dining Out", ...[...k.foodCategories].sort()]) if (c && cats.includes(c)) return c;
-  return cats[0] ?? null;
-}
-
-function DayCard({ d, k, b, pay }: { d: DayView; k: Kitchen; b: Book; pay: Omit<PayInfo, "category"> }) {
-  return (
-    <div className="card day">
-      <div className="section"><h3 className="section-title">{d.title}</h3>
-        {d.tag ? <Pill tone={d.tag === "Today" ? "accent" : "neutral"}>{d.tag}</Pill> : null}</div>
-      {d.meals.length ? d.meals.map((m) => (
-        <MealCard key={m.slot} meal={m}
-          pay={{ ...pay, category: payCategory(k, b, k.entries(m.day).find((e) => e.slot === m.slot && k.isBought(e))) }} />
-      )) : <Empty>Nothing planned.</Empty>}
-    </div>
-  );
-}
-
-function nextSlot(now = new Date()) {
-  const h = now.getUTCHours(); // Accra time is UTC
-  return h < 10 ? "Breakfast" : h < 15 ? "Lunch" : "Supper";
-}
-
-export default async function MealPlan() {
-  const [k, b] = await Promise.all([loadKitchen(), loadBook()]);
+/** The Meal app's home: this month's food money, today's meals, what's coming up, what's running low and what's in
+ * the fridge, each with a way into the page that deals with it. */
+export default async function MealHome() {
+  const [user, k, b] = await Promise.all([requireUser(), loadKitchen(), loadBook()]);
   const today = todayISO();
-  const [start, end] = k.window(today);
-  const pay = { accounts: b.accountNames, account: b.defaultAccount("Expense"), categories: b.categoryNames("Expense") };
-  const usual = SLOTS.map((s) => `${frac(k.slotPeople[s])} at ${s.toLowerCase()}`).join(", ");
-  const head = <KitchenHead current="/meals" title="Meal plan" sub={`Today to ${aD(end)} · usually ${usual}`} />;
+  const period = monthOf(today);
+
+  // food money this month: against the food budget when there is one, else just what was spent
+  const cats = new Set([...k.foodCategories].filter(Boolean));
+  const fb = cats.size ? foodBudget(b, cats, today) : null;
+  const spent = fb ? fb.spent : b.monthExpenses(period).filter((t) => cats.has(t.category)).reduce((a, t) => a + t.amount, 0);
   const g = guard(k, b, today);
-  const copy = repeatPlan(k.plan, today, 14);
 
-  // the weeks: this week shown, the next folded away; earlier this week folded away at the top
-  const dow = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7; // Monday is 0
-  const monday = addDays(today, -dow);
-  const past = Array.from({ length: dow }, (_, i) => addDays(monday, i));
-  const days = Array.from({ length: 14 }, (_, i) => addDays(start, i));
-  const weeks = new Map<string, string[]>();
-  for (const d of days) {
-    const wk = addDays(d, -((new Date(`${d}T00:00:00Z`).getUTCDay() + 6) % 7));
-    weeks.set(wk, [...(weeks.get(wk) ?? []), d]);
-  }
+  const soon = [1, 2].map((n) => addDays(today, n)).map((d) => ({
+    day: d, meals: SLOTS.map((slot) => ({ slot, parts: k.entries(d).filter((e) => e.slot === slot) }))
+      .filter((m) => m.parts.length).map((m) => ({ slot: m.slot, name: k.mealName(m.parts) })),
+  }));
+  const foodLow = k.foodLow();
+  const suppliesLow = k.suppliesLow();
+  const fridge = k.fridge.slice(0, 5);
 
-  // the add form's choices
-  const options: Option[] = [
-    ...[...k.pairings].map(([i, p]) => ({ key: `p:${i}`, label: `🍲 ${p.name}`, kind: "pairing" as const,
-      parts: p.parts.map((x) => (x.recipeId ? `r:${x.recipeId}` : `i:${x.ingredientId}`)),
-      sides: Object.fromEntries(p.parts.filter((x) => x.ingredientId).map((x) => [`i:${x.ingredientId}`, { qty: x.qty ?? 1, unit: x.unit ?? "pcs" }])) })),
-    ...[...k.recipes].sort((a, b2) => (a[1].name.toLowerCase() < b2[1].name.toLowerCase() ? -1 : 1)).map(([i, r]) => ({ key: `r:${i}`,
-      label: r.name + (r.bought ? " 🛍️" : ""), kind: "recipe" as const, bought: Boolean(r.bought), countUnit: r.countUnit })),
-    ...[...k.foodNames].sort((a, b2) => (a[1].toLowerCase() < b2[1].toLowerCase() ? -1 : 1)).map(([i, n]) => ({ key: `i:${i}`,
-      label: `${n} (item)`, kind: "item" as const, units: unitsFor(k.unitOf.get(i) ?? "pcs", k.pack(i)) })),
-  ];
-  const mealPeople: Record<string, number> = {};
-  for (const d of days) for (const s of SLOTS) mealPeople[`${d}|${s}`] = k.mealPeople(d, s);
   return (
     <>
-      {head}
-      <div className="stack mb-4">
-        <TodayCard k={k} onPlan />
-        {copy.length ? <CopyWeek label={!k.entries(start, end).length ? `Copy the week before (${k.mealCount(copy)} meals)`
-          : `Fill the empty meals from the week before (${k.mealCount(copy)})`} primary={!k.entries(start, end).length} /> : null}
-        {g ? <Msg tone={g[0] as "warn" | "hint"}>{g[1]}</Msg> : null}
+      <div className="mb-5">
+        <div className="text-sm text-muted">{aDb(today)}</div>
+        <h1 className="page-title">Hello, {user.name}</h1>
       </div>
-      <div className="grid32">
+
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="stack">
-          {past.length && k.entries(past[0], past[past.length - 1]).length ? (
-            <details className="card">
-              <summary>Earlier this week ({aD(past[0]).slice(0, 3)} to {aD(past[past.length - 1]).slice(0, 3)}, {(n => `${n} meal${n === 1 ? "" : "s"}`)(k.mealCount(k.entries(past[0], past[past.length - 1])))})</summary>
-              <div className="stack">{past.map((d) => <DayCard key={d} d={dayView(k, d, today)} k={k} b={b} pay={pay} />)}</div>
-            </details>
-          ) : null}
-          {[...weeks].map(([wk, wdays], i) => {
-            const name = wk === monday ? "This week" : wk === addDays(monday, 7) ? "Next week" : "Week after";
-            const n = k.mealCount(k.entries(wdays[0], wdays[wdays.length - 1]));
-            const label = `${name} · ${aD(wdays[0])} to ${aD(wdays[wdays.length - 1])} · ${n} meal${n === 1 ? "" : "s"}`;
-            const cards = wdays.map((d) => <DayCard key={d} d={dayView(k, d, today)} k={k} b={b} pay={pay} />);
-            return i === 0 ? (
-              <div key={wk} className="stack"><div className="week-head">{label}</div>{cards}</div>
-            ) : (
-              <details key={wk} className="card"><summary>{label}</summary><div className="stack">{cards}</div></details>
-            );
-          })}
+          <div className="grid grid-cols-2 gap-3">
+            <Kpi label={`Food Budget Left · ${monthShort(period)}`} value={fb ? money(Math.max(fb.limit - fb.spent, 0)) : "—"}
+              valueClassName="text-emerald-500"
+              foot={fb ? (fb.spent > fb.limit ? `Over by ${money(fb.spent - fb.limit)}` : `Budget ${money(fb.limit)}`) : <Link href="/budgets">Set a food budget</Link>} />
+            <Kpi label={`Food Spent · ${monthShort(period)}`} value={money(spent)} tone="out"
+              foot={fb ? fb.names.join(" and ") : monthName(period, false)} />
+          </div>
+          {g ? <Msg tone={g[0] as "warn" | "hint"}>{g[1]}</Msg> : null}
+
+          <TodayCard k={k} />
+
+          <div className="card">
+            <Section title="Coming up" />
+            {soon.map((d) => (
+              <div key={d.day} className="rule">
+                <div className="min-w-0">
+                  <div className="rule-name">{d.day === addDays(today, 1) ? "Tomorrow" : aDb(d.day)}</div>
+                  <div className="rule-meta">{d.meals.length ? d.meals.map((m) => `${m.slot}: ${m.name}`).join(" · ") : "Nothing planned yet"}</div>
+                </div>
+              </div>
+            ))}
+            <Link className="btn ghost mt-1" href="/meals/plan">Plan meals</Link>
+          </div>
         </div>
-        <AddToPlan today={today} nextSlot={nextSlot()} usual={k.slotPeople} mealPeople={mealPeople} options={options} />
+
+        <div className="stack">
+          <div className="card">
+            <Section title="Running low" aside={foodLow.length + suppliesLow.length ? `${foodLow.length + suppliesLow.length} item${foodLow.length + suppliesLow.length === 1 ? "" : "s"}` : undefined} />
+            {foodLow.length || suppliesLow.length ? (
+              <>
+                {foodLow.length ? <div className="rule"><div className="min-w-0"><div className="rule-name">Food</div>
+                  <div className="rule-meta">{foodLow.join(", ")}</div></div></div> : null}
+                {suppliesLow.length ? <div className="rule"><div className="min-w-0"><div className="rule-name">Household</div>
+                  <div className="rule-meta">{suppliesLow.join(", ")}</div></div></div> : null}
+              </>
+            ) : <Empty>Nothing is running low.</Empty>}
+            <div className="btns mt-1">
+              <Link className="btn ghost" href="/shopping">Shopping list</Link>
+              <Link className="btn ghost" href="/meals/household">Household</Link>
+            </div>
+          </div>
+
+          <div className="card">
+            <Section title="In the fridge" aside={k.fridge.length ? `${k.fridge.length} dish${k.fridge.length === 1 ? "" : "es"}` : undefined} />
+            {fridge.length ? fridge.map((f) => (
+              <div key={f.id} className="rule">
+                <div className="min-w-0">
+                  <div className="rule-name">{f.label}{f.eatBy <= today ? <Pill tone="warn">Eat today</Pill> : null}</div>
+                  <div className="rule-meta">{frac(f.portions)} {plural(f.unit ?? "portion", f.portions)} · eat by {aDb(f.eatBy)}</div>
+                </div>
+              </div>
+            )) : <Empty>No leftovers in the fridge.</Empty>}
+            <Link className="btn ghost mt-1" href="/meals/fridge">Open the fridge</Link>
+          </div>
+        </div>
       </div>
     </>
   );

@@ -15,7 +15,8 @@ const ITEMS: Record<Space, NavItem[]> = {
     { href: "/settings", label: "Settings", icon: "settings", match: ["/settings"] },
   ],
   meals: [
-    { href: "/meals", label: "Plan", icon: "restaurant", match: ["/meals"] },
+    { href: "/meals", label: "Home", icon: "home", match: ["/meals$"] },
+    { href: "/meals/plan", label: "Plan", icon: "restaurant", match: ["/meals/plan", "/meals/recipes"] },
     { href: "/shopping", label: "Shopping", icon: "cart", match: ["/shopping"] },
     { href: "/pantry", label: "Pantry", icon: "pantry", match: ["/pantry", "/meals/fridge"] },
     { href: "/meals/household", label: "Household", icon: "clean", match: ["/meals/household"] },
@@ -24,9 +25,10 @@ const ITEMS: Record<Space, NavItem[]> = {
 };
 
 function active(path: string, item: NavItem, items: NavItem[]) {
-  const hit = (m: string) => (m === "/" ? path === "/" : path === m || path.startsWith(`${m}/`));
+  // "/" and anything ending in "$" match only that exact page
+  const hit = (m: string) => (m === "/" || m.endsWith("$") ? path === m.replace(/\$$/, "") : path === m || path.startsWith(`${m}/`));
   if (!item.match.some(hit)) return false;
-  // "/meals" also covers /meals/household; the longer, more specific item wins
+  // when two items both match, the longer, more specific one wins
   const len = Math.max(...item.match.filter(hit).map((m) => m.length));
   return !items.some((o) => o !== item && o.match.some((m) => hit(m) && m.length > len));
 }

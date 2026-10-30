@@ -164,7 +164,7 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
       const sign = found.kind === "Income" || found.direction === "cash_in" ? 1 : -1;
       const after = (ctx.balances[momo] ?? 0) + sign * found.amount - found.fee;
       if (Math.abs(after - found.balance) >= 0.01) {
-        tips.push({ tone: "warn", text: `Your MoMo balance is ${money(found.balance)}; Cashew will show ${money(after)} for ${momo} after this, so an earlier entry may be missing.` });
+        tips.push({ tone: "warn", text: `Your MoMo balance is ${money(found.balance)}; the app will show ${money(after)} for ${momo} after this, so an earlier entry may be missing.` });
       }
     }
     setMomoTips(tips);

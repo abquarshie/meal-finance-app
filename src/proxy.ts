@@ -3,7 +3,7 @@ import { asSpace, SPACE_COOKIE, SPACE_HEADER, spaceOf } from "@/lib/apps";
 
 // Signed-out visitors go straight to the sign-in page, which brings them back here afterwards. (Whether a cookie's
 // session is still valid is checked against the database on every page; this only spares a wasted render.)
-// Every page is also told which app it's in (Cashew or Jollof), remembered so shared pages keep the right name.
+// Every page is also told which app it's in (Finance or Meal), remembered so shared pages keep the right name.
 export function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname;
   const decided = spaceOf(path);

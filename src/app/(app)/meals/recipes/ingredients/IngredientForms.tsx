@@ -57,7 +57,7 @@ function Add({ categories, taken }: { categories: string[]; taken: string[] }) {
             <input className="input" type="number" min="0" step="any" value={v.low} onChange={(e) => setV({ ...v, low: e.target.value })} /></label>
         </div>
       </details>
-      {v.pack && !v.size ? <Msg tone="hint">Say how much one {v.pack} holds, so Cashew can count in {plural(v.pack)}.</Msg> : null}
+      {v.pack && !v.size ? <Msg tone="hint">Say how much one {v.pack} holds, so the app can count in {plural(v.pack)}.</Msg> : null}
       {v.pack && v.pack === v.unit ? <Msg>Pick a different container from the base unit, or leave it as loose.</Msg> : null}
       <div><button className="btn primary" disabled={!v.name.trim() || clash || badPack || busy}>Add ingredient</button></div>
     </form>

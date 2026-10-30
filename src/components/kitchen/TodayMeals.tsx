@@ -26,7 +26,7 @@ export async function TodayMeals() {
             </div>
           );
         }) : <div className="today-row"><div className="today-dish muted">Nothing planned for today.</div></div>}
-        <Link className="btn ghost mt-1" href="/meals">Open the meal plan</Link>
+        <Link className="btn ghost mt-1" href="/meals/plan">Open the meal plan</Link>
       </div>
     );
   } catch (e) {
