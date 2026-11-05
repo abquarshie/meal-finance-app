@@ -89,10 +89,10 @@ export default async function Review({ searchParams }: { searchParams: Promise<{
           <div className="card">
             <Section title="Biggest expenses" />
             {r.biggest.length ? (
-              <ul className="m-0 grid list-none gap-2 p-0">
+              <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0">
                 {r.biggest.map((t, i) => (
                   <li key={i} className="flex items-baseline justify-between gap-3 text-sm">
-                    <span className="min-w-0 truncate"><span className="font-semibold">{t.note || t.category}</span>
+                    <span className="min-w-0 break-words"><span className="font-semibold">{t.note || t.category}</span>
                       <span className="text-muted"> · {t.category} · {dayMonth(t.date)}</span></span>
                     <span className="num flex-none font-semibold">{money(t.amount)}</span>
                   </li>
@@ -109,10 +109,10 @@ export default async function Review({ searchParams }: { searchParams: Promise<{
 function Changes({ rows, empty }: { rows: { category: string; now: number; prev: number; diff: number }[]; empty: string }) {
   if (!rows.length) return <Empty>{empty}</Empty>;
   return (
-    <ul className="m-0 grid list-none gap-2 p-0">
+    <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0">
       {rows.map((c) => (
         <li key={c.category} className="flex items-baseline justify-between gap-3 text-sm">
-          <span className="min-w-0 truncate"><span className="font-semibold">{c.category}</span>
+          <span className="min-w-0 break-words"><span className="font-semibold">{c.category}</span>
             <span className="text-muted"> · {money(c.prev)} → {money(c.now)}</span></span>
           <span className={`num flex-none font-semibold ${c.diff > 0 ? "text-out" : "text-in"}`}>{money(c.diff, true)}</span>
         </li>
