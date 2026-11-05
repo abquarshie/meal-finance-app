@@ -1,0 +1,39 @@
+name: Check
+
+# Runs on every pull request (and on main) so a broken change never reaches Vercel: the type check, the unit and
+# parity tests against a throwaway Postgres made from prisma/schema.prisma, and the production build.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: cashew
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # the throwaway database above, never Neon
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/cashew
+      SESSION_SECRET: ci-only-not-a-real-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Create the tables in the throwaway database
+        run: npx prisma db push
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

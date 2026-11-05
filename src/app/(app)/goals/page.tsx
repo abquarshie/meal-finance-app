@@ -1,4 +1,4 @@
-import { Empty, PageHead, Pill, Progress, Section, Tabs } from "@/components/ui";
+import { Empty, PageHead, Pill, Progress, Section, REVIEW_TABS, Tabs } from "@/components/ui";
 import { dayLabel, longDate, today } from "@/lib/dates";
 import { loadGoals, recentMoves, type Goal } from "@/lib/goals";
 import { loadBook } from "@/lib/load";
@@ -32,7 +32,7 @@ export default async function Goals() {
   return (
     <>
       <PageHead title="Goals" sub="Each goal is its own savings pot. Move money in from any account, or back out." />
-      <Tabs current="/goals" tabs={[{ href: "/budgets", label: "Budgets" }, { href: "/goals", label: "Goals" }]} />
+      <Tabs current="/goals" tabs={REVIEW_TABS} />
       <div className="grid32">
         <div className="stack">
           {goals.length ? goals.map((g) => (

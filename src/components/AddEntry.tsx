@@ -3,7 +3,8 @@
 // - Amount, category and account up front. The ones used last are already picked; the most-used are one-tap chips.
 // - What was bought (the note) sits under the account. Date, who it was for and any fee sit under "More details". The date is Today unless changed there.
 // - After a category is picked, "Same as last time" fills in the last amount used.
-// - A pasted MoMo text fills the form in.
+// - A pasted MoMo text fills the form in. So does one shared from the phone's Messages app: the installed app is a
+//   share target (public/manifest.json), so Share → Finance opens /?momo=<text>, which opens this form already filled in.
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { addEntry, categoryFor } from "@/actions/entries";
 import { addDays } from "@/lib/dates";
@@ -56,18 +57,31 @@ function Accounts({ ctx, label, value, onPick, exclude }: {
 
 const num = (s: string) => (s.trim() === "" ? null : Number(s));
 
+/** The parameters the share target in public/manifest.json sends. */
+const SHARE_PARAMS = ["momo_title", "momo", "momo_url"];
+
 export function AddEntry({ ctx }: { ctx: EntryContext }) {
   const [open, setOpen] = useState(false);
+  const [shared, setShared] = useState<string | null>(null);
   useEffect(() => {
-    const show = () => setOpen(true);
+    const show = () => { setShared(null); setOpen(true); };
     window.addEventListener(OPEN_EVENT, show);
+    // a message shared into the app: open the form with it, and take it out of the address bar
+    const url = new URL(window.location.href);
+    const text = SHARE_PARAMS.map((k) => url.searchParams.get(k)?.trim()).filter(Boolean).join("\n");
+    if (text) {
+      SHARE_PARAMS.forEach((k) => url.searchParams.delete(k));
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+      setShared(text);
+      setOpen(true);
+    }
     return () => window.removeEventListener(OPEN_EVENT, show);
   }, []);
   if (!ctx.accounts.length) return null;
   return (
     <>
       <Sheet open={open} onClose={() => setOpen(false)} title="Add an entry">
-        <EntryForm ctx={ctx} onDone={() => setOpen(false)} />
+        <EntryForm key={shared ?? ""} ctx={ctx} shared={shared} onDone={() => { setShared(null); setOpen(false); }} />
       </Sheet>
     </>
   );
@@ -82,7 +96,7 @@ export function AddEntryButton() {
   );
 }
 
-function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
+function EntryForm({ ctx, onDone, shared }: { ctx: EntryContext; onDone: () => void; shared?: string | null }) {
   const toast = useToast();
   const [busy, start] = useTransition();
   const [kind, setKind] = useState<Kind>("Expense");
@@ -99,7 +113,7 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
   const [note, setNote] = useState("");
   const [who, setWho] = useState(SHARED);
   const [fee, setFee] = useState("");
-  const [momoText, setMomoText] = useState("");
+  const [momoText, setMomoText] = useState(shared ?? "");
   const [momoTips, setMomoTips] = useState<Tip[] | null>(null);
   const [momoId, setMomoId] = useState<string | null>(null);
   const [dup, setDup] = useState<string | null>(null);
@@ -130,9 +144,9 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
     setDup(null);
   }
 
-  async function readMomo() {
-    const found = parseMomo(momoText);
-    if (!momoText.trim()) return setMomoTips(null);
+  async function readMomo(text = momoText) {
+    const found = parseMomo(text);
+    if (!text.trim()) return setMomoTips(null);
     if (!found) {
       return setMomoTips([{ tone: "error", text: "That doesn't look like a mobile money message. Copy the whole text, including the GHS amount." }]);
     }
@@ -171,6 +185,12 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
     setDup(null);
   }
 
+  // a shared message is read straight away
+  useEffect(() => {
+    if (shared) void readMomo(shared);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function save(confirmed = false) {
     setError(null);
     if (!amt) return setError("Enter an amount first.");
@@ -199,7 +219,7 @@ function EntryForm({ ctx, onDone }: { ctx: EntryContext; onDone: () => void }) {
           <textarea className="input" aria-label="MoMo text" value={momoText} onChange={(e) => setMomoText(e.target.value)}
             placeholder="Paste the whole message, e.g. Payment made for GHS 50.00 to …" />
           <div className="btns">
-            <button type="button" className="btn" onClick={readMomo}>Fill in the form</button>
+            <button type="button" className="btn" onClick={() => readMomo()}>Fill in the form</button>
             {momoTips ? <button type="button" className="btn ghost" onClick={() => { setMomoText(""); setMomoTips(null); setMomoId(null); }}>Clear</button> : null}
           </div>
           {momoTips?.map((t, i) => <Msg key={i} tone={t.tone}>{t.text}</Msg>)}

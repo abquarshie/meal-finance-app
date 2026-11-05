@@ -27,5 +27,14 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "title": "momo_title",
+      "text": "momo",
+      "url": "momo_url"
+    }
+  }
 }

@@ -63,6 +63,11 @@ export function Progress({ name, pct, tone, pill, footLeft, footRight, footOver 
   );
 }
 
+/** The tabs across Budgets, Goals and Month in review. */
+export const REVIEW_TABS = [
+  { href: "/budgets", label: "Budgets" }, { href: "/goals", label: "Goals" }, { href: "/budgets/review", label: "Review" },
+];
+
 export function Tabs({ tabs, current }: { tabs: { href: string; label: string }[]; current: string }) {
   return (
     <nav className="tabs" aria-label="Sections">
