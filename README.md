@@ -75,6 +75,24 @@ Everything was checked against the Python app on the same database:
 - the actions: the same 20 ticks, payments, a shopping trip, fridge and pantry changes done by both apps on two
   copies of one database leave every kitchen table identical, and so do the starter recipes and the catalog.
 
+## Sharing a MoMo text into the app
+
+`public/manifest.json` makes the installed Finance app a share target. On Android, long-press a mobile money SMS,
+tap Share and pick Finance: it opens `/?momo=<text>`, and the Add an entry form opens already filled in from the
+message. It only appears in the share sheet once the app is installed to the home screen from Chrome (iPhones don't
+offer share targets to web apps; paste the text instead).
+
+## Month in review
+
+Budgets → Review shows a month next to the five before it: spending by group, what went up and down against the month
+before, money moved into goals and the biggest expenses. In the first week of a month, Home links to last month's.
+
+## Checks and backups
+
+`.github/workflows/check.yml` runs on every pull request: the type check, `npm test` against a throwaway Postgres made
+from `prisma/schema.prisma` (never Neon), and the build. `.github/workflows/backup.yml` saves a full `pg_dump` every
+night, kept 30 days on the run page; it needs a `BACKUP_DATABASE_URL` repository secret (Neon's direct string).
+
 ## Tests
 
 ```bash

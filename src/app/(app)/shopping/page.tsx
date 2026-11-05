@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { KitchenHead } from "@/components/kitchen/KitchenTabs";
-import { Empty, Msg, Section } from "@/components/ui";
+import { Msg, Section } from "@/components/ui";
 import { addDays, monthOf, today as todayISO } from "@/lib/dates";
-import { guard } from "@/lib/kitchen/kitchen";
+import { foodBudget, guard } from "@/lib/kitchen/kitchen";
 import { loadKitchen } from "@/lib/kitchen/load";
 import { aD, SLOTS } from "@/lib/kitchen/logic";
 import { listRows, qtyLabel, shoppingRows } from "@/lib/kitchen/shopping";
@@ -37,6 +37,10 @@ export default async function Shopping({ searchParams }: { searchParams: Promise
     pickUnknown += cost === null ? 1 : 0;
     return { key: e.id, text: `${aD(e.day).slice(0, 3)} ${e.slot.toLowerCase()}: ${k.entryName(e)}, ${frac(e.qty)} ${plural(unit, e.qty)}${r?.shop ? ` · ${r.shop}` : ""}`, cost };
   });
+  // this list's estimated cost next to what's left of the food budget, shown before anyone goes to the market
+  const listEst = Math.round((rows.reduce((a, r) => a + (r.est ?? 0), 0) + pickTotal) * 100) / 100;
+  const unpriced = rows.filter((r) => r.est === null).length + pickUnknown;
+  const food = k.foodCategories.size ? foodBudget(b, new Set([...k.foodCategories].filter(Boolean)), today) : null;
   const guards = (["food", "household"] as const).map((x) => guard(k, b, today, x)).filter((g): g is [string, string] => Boolean(g));
   const planned = k.mealCount(entries);
   const items = [...k.names].sort((a, b2) => (a[1].toLowerCase() < b2[1].toLowerCase() ? -1 : 1))
@@ -55,6 +59,41 @@ export default async function Shopping({ searchParams }: { searchParams: Promise
       <div className="seg mb-4 max-w-lg" role="group" aria-label="For">
         {SCOPES.map(([d, label]) => <Link key={d} href={`/shopping?days=${d}`} role="button" aria-pressed={Number(d) === days}>{label}</Link>)}
       </div>
+      {rows.length || pickLines.length ? (
+        <div className="card mb-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-xs text-muted">This list, from past prices</div>
+              <div className="num text-xl font-bold">about {money(listEst)}</div>
+              {unpriced ? <div className="text-xs text-muted">+ {unpriced} item{unpriced === 1 ? "" : "s"} with no price yet</div> : null}
+            </div>
+            <div className="text-right">
+              <div className="text-xs text-muted">Food budget left this month</div>
+              {food ? (
+                <div className={`num text-xl font-bold ${food.limit - food.spent - listEst < 0 ? "text-out" : "text-in"}`}>{money(food.limit - food.spent)}</div>
+              ) : <Link className="text-sm font-semibold" href="/budgets">Set a food budget</Link>}
+            </div>
+          </div>
+          {food ? (
+            <>
+              <div className="bar mt-3" role="progressbar" aria-label="Food budget with this list" aria-valuemin={0} aria-valuemax={100}
+                aria-valuenow={Math.round(((food.spent + listEst) / food.limit) * 100)}>
+                {/* spent so far, then this list on top of it */}
+                <div className="flex h-full">
+                  <div className="fill" style={{ width: `${Math.min((food.spent / food.limit) * 100, 100).toFixed(1)}%`, borderRadius: 0 }} />
+                  <div className={`fill ${food.spent + listEst > food.limit ? "over" : "warn"}`}
+                    style={{ width: `${Math.max(Math.min((listEst / food.limit) * 100, 100 - (food.spent / food.limit) * 100), 0).toFixed(1)}%`, borderRadius: 0 }} />
+                </div>
+              </div>
+              <p className="caption mb-0 mt-1.5">
+                {food.limit - food.spent - listEst >= 0
+                  ? `After this list, about ${money(food.limit - food.spent - listEst)} would be left of the ${money(food.limit)} food budget.`
+                  : `This list would go about ${money(food.spent + listEst - food.limit)} over the ${money(food.limit)} food budget.`}
+              </p>
+            </>
+          ) : null}
+        </div>
+      ) : null}
       {guards.map((g, i) => <Msg key={i} tone={g[0] as "warn"}>{g[1]}</Msg>)}
       <ShoppingList key={`${days}-${rows.length}`} rows={rows.map((r) => ({ ...r, label: qtyLabel(r.amount, r.unit) }))} categories={cats}
         accounts={b.accountNames} account={b.defaultAccount("Expense")} shops={k.shops()} today={today} items={items} unitPrice={unitPrice}

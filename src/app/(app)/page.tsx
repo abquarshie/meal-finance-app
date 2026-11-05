@@ -102,6 +102,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ m
               may be off. Fix this in Settings → Accounts.</Msg> : null}
           </details>
 
+          {Number(now.slice(8)) <= 7 && b.months(now).includes(previousMonth(monthOf(now))) ? (
+            // the first week of a month: last month is finished, so offer its review
+            <Link className="btn ghost wide" href={`/budgets/review?month=${previousMonth(monthOf(now))}`}>
+              <Icon name="donut" /> See {monthName(previousMonth(monthOf(now)), false)} in review
+            </Link>
+          ) : null}
+
           {b.accountNames.length ? <AddEntryButton /> : (
             <div className="note">Add an account first in <Link href="/settings">Settings → Accounts</Link>.</div>
           )}
