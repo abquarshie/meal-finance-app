@@ -10,6 +10,7 @@ import { prisma, type Tx } from "@/lib/db";
 import { eaters, entryNeeds, OPEN, priceChanges, SLOTS, takePortions, type Need, type TripLine } from "@/lib/kitchen/logic";
 import { addStock, lockEntry, packsOf, recipeOf, slotPeople, takeStock, type LockedEntry, type Undo } from "@/lib/kitchen/stock";
 import { HOUSEHOLD_KEY, slotKey } from "@/lib/kitchen/kitchen";
+import { newCalendarToken } from "@/lib/kitchen/calendar";
 import { fmt, frac, plural, toBase, type Pack } from "@/lib/kitchen/units";
 import { FEE_CATEGORY, money, SHARED } from "@/lib/money";
 
@@ -415,5 +416,14 @@ export async function saveTrip(day: string, account: string, linesIn: z.input<ty
     const split = [...byCat].map(([c, items]) => `${c} ${money(items.reduce((a, i) => a + i.price, 0))}`).join(", ");
     const total = lines.reduce((a, l) => a + l.price, 0);
     return ok(`Saved ${money(total)} of shopping${shop ? ` at ${shop}` : ""} from ${account}: ${split}`, { changes });
+  });
+}
+
+// ---- the calendar link -----------------------------------------------------------------------------------------
+export async function resetCalendarLink(): Promise<Result> {
+  return attempt(async () => {
+    await requireUser();
+    await newCalendarToken();
+    return ok("New calendar link made. The old one no longer works: subscribe again with the new link.");
   });
 }

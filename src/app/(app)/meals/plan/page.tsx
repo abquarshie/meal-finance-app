@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { KitchenHead } from "@/components/kitchen/KitchenTabs";
 import { AddToPlan, type Option } from "@/components/kitchen/AddToPlan";
+import { CalendarLink } from "@/components/kitchen/CalendarLink";
 import { CopyWeek } from "@/components/kitchen/CopyWeek";
 import { MealCard, type PayInfo } from "@/components/kitchen/MealCard";
 import { TodayCard } from "@/components/kitchen/TodayCard";
 import { Empty, Msg, Pill } from "@/components/ui";
 import type { Book } from "@/lib/book";
 import { addDays, today as todayISO } from "@/lib/dates";
+import { calendarToken } from "@/lib/kitchen/calendar";
 import { guard, type Kitchen } from "@/lib/kitchen/kitchen";
 import { loadKitchen } from "@/lib/kitchen/load";
 import { aD, repeatPlan, SLOTS, type Entry } from "@/lib/kitchen/logic";
@@ -43,7 +45,7 @@ function nextSlot(now = new Date()) {
 }
 
 export default async function MealPlan() {
-  const [k, b] = await Promise.all([loadKitchen(), loadBook()]);
+  const [k, b, cal] = await Promise.all([loadKitchen(), loadBook(), calendarToken()]);
   const today = todayISO();
   const [start, end] = k.window(today);
   const pay = { accounts: b.accountNames, account: b.defaultAccount("Expense"), categories: b.categoryNames("Expense") };
@@ -104,7 +106,10 @@ export default async function MealPlan() {
             );
           })}
         </div>
-        <AddToPlan today={today} nextSlot={nextSlot()} usual={k.slotPeople} mealPeople={mealPeople} options={options} />
+        <div className="stack">
+          <AddToPlan today={today} nextSlot={nextSlot()} usual={k.slotPeople} mealPeople={mealPeople} options={options} />
+          <CalendarLink path={`/cal/${cal}.ics`} />
+        </div>
       </div>
     </>
   );
