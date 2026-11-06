@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { entryContext } from "@/lib/entry";
 import { loadBook } from "@/lib/load";
 import { currentSpace } from "@/lib/space";
+import { WhatsNew } from "@/components/WhatsNew";
 
 export const dynamic = "force-dynamic"; // always the family's latest figures
 
@@ -37,6 +38,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {children}
       </main>
       <TabBar initial={space} />
+      <WhatsNew />
       <AddEntry ctx={entryContext(book)} />
     </div>
   );

@@ -114,3 +114,7 @@ python3 tests/parity/state.py $PG/kpy > a.json && python3 tests/parity/state.py 
 ```
 
 `src/lib/kitchen/catalog.json` comes from the Python catalog: `python3 tests/parity/export_catalog.py ../cashew`.
+
+## What's new
+
+When the app opens after an update, a "What's new" card lists the changes once on each phone or computer. Every pull request that changes something people will notice adds an entry at the top of `src/lib/whats-new.ts` with the next id, the date and a few plain sentences.
