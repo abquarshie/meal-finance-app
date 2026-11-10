@@ -5,6 +5,13 @@ export type News = { id: number; date: string; title: string; items: string[] };
 
 export const NEWS: News[] = [
   {
+    id: 4, date: "2026-11-10", title: "What the meal plan costs",
+    items: [
+      "The Meal plan page shows what the plan still needs bought this month, from the last prices you paid, next to the food budget.",
+      "Each week on the plan shows about how much its meals will cost to shop for.",
+    ],
+  },
+  {
     id: 3, date: "2026-11-06", title: "Meal plan in your calendar",
     items: [
       "Subscribe to the meal plan from your phone or Google Calendar: open the Meal plan page and use the calendar card.",

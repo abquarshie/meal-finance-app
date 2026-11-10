@@ -436,16 +436,30 @@ export function foodBudget(b: Book, categories: Set<string>, today: ISODate) {
   return names.length ? { limit, spent, names } : null;
 }
 
-/** Estimated cost of what the plan still needs bought, from today to the end of the month (within two weeks). */
-export function plannedCost(k: Kitchen, today: ISODate): [number, number] {
-  const [start, end0] = k.window(today);
-  const me = monthEnd(monthOf(today));
-  const end = end0 < me ? end0 : me;
-  const entries = k.openEntries(start, end);
+/**
+ * Estimated cost of what the meals not cooked yet between two days still need bought, from the last prices paid:
+ * the ingredients the stock doesn't cover (shared out over the whole plan from today) plus food bought ready-made.
+ * Returns [cost, how many items have no price yet].
+ */
+export function costBetween(k: Kitchen, today: ISODate, start: ISODate, end: ISODate): [number, number] {
+  const entries = k.openEntries(start < today ? today : start, end);
+  if (!entries.length) return [0, 0];
   const items = shoppingList(shortfall(k.allocation(today), entries), new Map(), undefined, k.prices, k.packs);
   const [bought, boughtUnknown] = boughtCost(entries, k.recipes);
   return [Math.round((items.reduce((a, r) => a + (r.est ?? 0), 0) + bought) * 100) / 100,
     items.filter((r) => r.est === null).length + boughtUnknown];
+}
+
+/** The planned cost's last day: the end of the plan's window or of the month, whichever comes first. */
+export function plannedEnd(k: Kitchen, today: ISODate): ISODate {
+  const end = k.window(today)[1];
+  const me = monthEnd(monthOf(today));
+  return end < me ? end : me;
+}
+
+/** Estimated cost of what the plan still needs bought, from today to the end of the month (within two weeks). */
+export function plannedCost(k: Kitchen, today: ISODate): [number, number] {
+  return costBetween(k, today, k.window(today)[0], plannedEnd(k, today));
 }
 
 export function suppliesCost(k: Kitchen): number {
